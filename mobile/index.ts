@@ -1,5 +1,7 @@
 import { registerRootComponent } from 'expo';
 
+// Фоновая задача геолокации — до регистрации экрана, на верхнем уровне бандла
+import './src/geo/shiftTracking';
 import App from './App';
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);
