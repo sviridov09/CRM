@@ -10,6 +10,28 @@
 
 ---
 
+## 2026-10-30 22:25 — баг: модалки не открываются в dev
+
+**Симптом:** в CRM (`npm run dev`) кнопки New worker / New task / New site / New material ничего не открывают. Ошибок в консоли нет, `<dialog>` в DOM отсутствует.
+
+**Причина:** `crm/src/components/Modal.tsx`. В dev React StrictMode прогоняет эффект дважды:
+mount → `showModal()` → cleanup → `dialog.close()` → событие `close` → `onClose()` → родитель делает `setEditing(null)` → модалка размонтирована. В prod-сборке не проявляется.
+
+**Как поправить (предложение):** не закрывать диалог в cleanup — при размонтировании `<dialog>` и так уходит из DOM:
+
+```tsx
+useEffect(() => {
+  const dialog = ref.current
+  if (dialog && !dialog.open) dialog.showModal()
+}, [])
+```
+
+Вторая сессия код не трогала. После фикса — проверка создания рабочего (токен бригадира + домен `@workers.field-crm.invalid`).
+
+**Статус из прошлой записи:** Даниил вошёл в CRM бригадиром (пароль сброшен через SQL Editor), справочник материалов из базы подтягивается — RLS и ключи работают.
+
+---
+
 ## 2026-10-30 22:00
 
 **Сделано в Supabase (проект `quqaaavtnqmqamcndvwe`):**
