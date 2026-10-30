@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import type { PayType, Profile } from '../../../shared/types'
+import { USERNAME_RE, type PayType, type Profile } from '../../../shared/types'
 import { Modal } from '../components/Modal'
 import { payLabel } from '../lib/format'
 import { functionErrorMessage, supabase } from '../lib/supabase'
 import { useAsync } from '../lib/useAsync'
 
-type Credentials = { email: string; password: string }
+type Credentials = { username: string; password: string }
 
 const loadWorkers = async () => {
   const { data, error } = await supabase.from('profiles').select('*').eq('role', 'worker').order('full_name')
@@ -39,6 +39,7 @@ export function WorkersPage() {
             <thead>
               <tr>
                 <th>Name</th>
+                <th>Login</th>
                 <th>Pay</th>
                 <th>Status</th>
                 <th />
@@ -48,6 +49,7 @@ export function WorkersPage() {
               {workers.map((w) => (
                 <tr key={w.id} className={w.active ? undefined : 'inactive'}>
                   <td className="strong">{w.full_name}</td>
+                  <td>{w.username ?? '—'}</td>
                   <td className="nowrap">{payLabel(w.pay_type, w.rate)}</td>
                   <td>{w.active ? 'Active' : 'Disabled'}</td>
                   <td className="actions">
@@ -127,7 +129,7 @@ function PayFields(props: {
 
 function NewWorkerForm({ onCreated }: { onCreated: (creds: Credentials) => void }) {
   const [fullName, setFullName] = useState('')
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState(() => generatePassword())
   const [payType, setPayType] = useState<PayType>('daily')
   const [rate, setRate] = useState('')
@@ -135,10 +137,14 @@ function NewWorkerForm({ onCreated }: { onCreated: (creds: Credentials) => void 
   const [saving, setSaving] = useState(false)
 
   async function save() {
+    const login = username.trim().toLowerCase()
+    if (!USERNAME_RE.test(login)) {
+      return setError('Login: 3–32 characters — lowercase letters, digits, dot, dash or underscore.')
+    }
     if (password.length < 8) return setError('Password must be at least 8 characters.')
     setSaving(true)
     setError(null)
-    const creds = { email: email.trim().toLowerCase(), password }
+    const creds = { username: login, password }
     const { error } = await supabase.functions.invoke('create-worker', {
       body: { ...creds, fullName: fullName.trim(), payType, rate: Number(rate) },
     })
@@ -163,8 +169,16 @@ function NewWorkerForm({ onCreated }: { onCreated: (creds: Credentials) => void 
         <input required value={fullName} onChange={(e) => setFullName(e.target.value)} />
       </label>
       <label>
-        Email (login)
-        <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+        Login
+        <input
+          required
+          autoCapitalize="none"
+          spellCheck={false}
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="john.smith"
+        />
+        <small>The worker signs in to the app with this login. Lowercase letters, digits, dot, dash, underscore.</small>
       </label>
       <label>
         Password
@@ -188,7 +202,7 @@ function NewWorkerForm({ onCreated }: { onCreated: (creds: Credentials) => void 
 
 function CredentialsView({ creds }: { creds: Credentials }) {
   const [copied, setCopied] = useState(false)
-  const text = `Field CRM app\nLogin: ${creds.email}\nPassword: ${creds.password}`
+  const text = `Field CRM app\nLogin: ${creds.username}\nPassword: ${creds.password}`
 
   return (
     <div className="form">

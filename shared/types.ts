@@ -14,6 +14,7 @@ export interface Profile {
   id: string;
   company_id: string;
   full_name: string;
+  username: string | null; // логин рабочего (0004); у бригадира null
   role: UserRole;
   pay_type: PayType;
   rate: number;
@@ -126,6 +127,14 @@ export interface AppNotification {
 }
 
 // ── Утилиты ──────────────────────────────────────────────────────
+
+/** Рабочие входят по логину; в Supabase Auth это служебный адрес (см. миграцию 0004). */
+export const WORKER_EMAIL_DOMAIN = "workers.field-crm.invalid";
+export const USERNAME_RE = /^[a-z0-9][a-z0-9._-]{2,31}$/;
+
+export function workerEmail(username: string): string {
+  return `${username.trim().toLowerCase()}@${WORKER_EMAIL_DOMAIN}`;
+}
 
 /** Расстояние в метрах между двумя точками (как distance_m в базе). */
 export function distanceM(lat1: number, lng1: number, lat2: number, lng2: number): number {
