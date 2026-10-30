@@ -10,10 +10,12 @@ type Props = {
 export function Modal({ title, onClose, children }: Props) {
   const ref = useRef<HTMLDialogElement>(null)
 
+  // Без close() в cleanup: StrictMode в dev прогоняет эффект дважды, close() шлёт
+  // событие close → onClose, и окно сразу закрывается. При размонтировании
+  // <dialog> и так удаляется из DOM вместе с модальным слоем.
   useEffect(() => {
     const dialog = ref.current
-    dialog?.showModal()
-    return () => dialog?.close()
+    if (dialog && !dialog.open) dialog.showModal()
   }, [])
 
   return (
