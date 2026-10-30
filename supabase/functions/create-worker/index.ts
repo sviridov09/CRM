@@ -17,7 +17,8 @@ type Body = {
 
 export default {
   fetch: withSupabase({ auth: "user" }, async (req, ctx) => {
-    const userId = ctx.userClaims?.sub;
+    // UserClaims — нормализованный вид: id пользователя в `id` (sub есть только в jwtClaims)
+    const userId = ctx.userClaims?.id;
     if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     // Кто вызывает: только бригадир (запрос идёт с правами самого пользователя)

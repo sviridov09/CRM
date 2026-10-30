@@ -10,6 +10,25 @@
 
 ---
 
+## 2026-10-30 22:38 — create-worker отвечает 401 «Unauthorized» на валидный токен бригадира
+
+**Воспроизведение:** CRM → Workers → New worker → Create account → в окне «Unauthorized».
+
+**Логи функции** (Supabase → Edge Functions → create-worker → Logs, запрос 22:30:51):
+- OPTIONS → 204 (CORS ок). POST → **401 за 72 мс**, deployment version 3.
+- Тело — наше `{"error":"Unauthorized"}`, не ошибка `@supabase/server` (у неё было бы `MISSING_CREDENTIALS` и т.п.).
+- Токен валидный: `role: authenticated`, `subject: 7e647011-…` (бригадир), ES256, `request.sb.auth_user` заполнен.
+
+**Причина (почти наверняка):** первая строка обработчика `const userId = ctx.userClaims?.sub;` — у `UserClaims` из `@supabase/server` id, скорее всего, в `id`, а `sub` есть только в сыром JWT (`ctx.jwtClaims.sub`). Строку писала вторая сессия.
+
+**Как поправить:**
+```ts
+const userId = ctx.userClaims?.id ?? ctx.jwtClaims?.sub;
+```
+Сверь с типом `UserClaims` в `npm:@supabase/server@1`, затем передеплой.
+
+---
+
 ## 2026-10-30 22:25 — баг: модалки не открываются в dev
 
 **Симптом:** в CRM (`npm run dev`) кнопки New worker / New task / New site / New material ничего не открывают. Ошибок в консоли нет, `<dialog>` в DOM отсутствует.
