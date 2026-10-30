@@ -1,0 +1,8 @@
+# Настройки Supabase CLI для деплоя функций.
+# Остальные параметры не задаём — берутся значения по умолчанию.
+project_id = "quqaaavtnqmqamcndvwe"
+
+# Токен проверяет сама функция (withSupabase({ auth: "user" })),
+# проверка шлюза с новыми ключами не нужна и может давать 401.
+[functions.create-worker]
+verify_jwt = false
