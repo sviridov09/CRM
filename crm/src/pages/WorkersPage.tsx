@@ -15,7 +15,8 @@ const loadWorkers = async () => {
 
 export function WorkersPage() {
   const [editing, setEditing] = useState<Profile | 'new' | null>(null)
-  const [created, setCreated] = useState<Credentials | null>(null)
+  // Логин и пароль, которые надо один раз показать бригадиру (после создания или сброса)
+  const [shown, setShown] = useState<{ title: string; creds: Credentials } | null>(null)
   const { data: workers, error, reload } = useAsync(loadWorkers)
 
   return (
@@ -69,7 +70,7 @@ export function WorkersPage() {
           <NewWorkerForm
             onCreated={(creds) => {
               setEditing(null)
-              setCreated(creds)
+              setShown({ title: 'Worker created', creds })
               reload()
             }}
           />
@@ -84,13 +85,17 @@ export function WorkersPage() {
               setEditing(null)
               reload()
             }}
+            onPasswordReset={(creds) => {
+              setEditing(null)
+              setShown({ title: 'Password reset', creds })
+            }}
           />
         </Modal>
       )}
 
-      {created && (
-        <Modal title="Worker created" onClose={() => setCreated(null)}>
-          <CredentialsView creds={created} />
+      {shown && (
+        <Modal title={shown.title} onClose={() => setShown(null)}>
+          <CredentialsView creds={shown.creds} />
         </Modal>
       )}
     </>
@@ -221,13 +226,35 @@ function CredentialsView({ creds }: { creds: Credentials }) {
   )
 }
 
-function EditWorkerForm({ worker, onSaved }: { worker: Profile; onSaved: () => void }) {
+function EditWorkerForm(props: {
+  worker: Profile
+  onSaved: () => void
+  onPasswordReset: (creds: Credentials) => void
+}) {
+  const { worker, onSaved } = props
   const [fullName, setFullName] = useState(worker.full_name)
   const [payType, setPayType] = useState<PayType>(worker.pay_type)
   const [rate, setRate] = useState(String(worker.rate))
   const [active, setActive] = useState(worker.active)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [resetting, setResetting] = useState(false)
+
+  async function resetPassword() {
+    if (!confirm(`Set a new password for ${worker.full_name}? The old one will stop working.`)) return
+    setResetting(true)
+    setError(null)
+    const password = generatePassword()
+    const { data, error } = await supabase.functions.invoke('reset-worker-password', {
+      body: { workerId: worker.id, password },
+    })
+    if (error) {
+      setError(await functionErrorMessage(error))
+      setResetting(false)
+    } else {
+      props.onPasswordReset({ username: data?.username ?? worker.username ?? '', password })
+    }
+  }
 
   async function save() {
     setSaving(true)
@@ -263,7 +290,15 @@ function EditWorkerForm({ worker, onSaved }: { worker: Profile; onSaved: () => v
       </label>
       {error && <p className="error">{error}</p>}
       <div className="form-actions">
-        <button className="btn primary" disabled={saving}>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => void resetPassword()}
+          disabled={saving || resetting}
+        >
+          {resetting ? 'Resetting…' : 'Reset password'}
+        </button>
+        <button className="btn primary" disabled={saving || resetting}>
           {saving ? 'Saving…' : 'Save'}
         </button>
       </div>

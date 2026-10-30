@@ -6,3 +6,6 @@ project_id = "quqaaavtnqmqamcndvwe"
 # проверка шлюза с новыми ключами не нужна и может давать 401.
 [functions.create-worker]
 verify_jwt = false
+
+[functions.reset-worker-password]
+verify_jwt = false
