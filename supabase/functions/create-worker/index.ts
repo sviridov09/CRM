@@ -1,13 +1,8 @@
 // Edge Function: бригадир создаёт аккаунт рабочего (логин + пароль).
-// Деплой: supabase functions deploy create-worker
-// Ключ service role берётся из окружения функции, в клиент он не попадает.
+// Работает на новых ключах Supabase (publishable / secret) через @supabase/server.
+// verify_jwt оставляем включённым: вызвать может только вошедший пользователь.
 
-import { createClient } from "jsr:@supabase/supabase-js@2";
-
-const cors = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { withSupabase } from "npm:@supabase/server@1";
 
 type Body = {
   email: string;
@@ -17,50 +12,53 @@ type Body = {
   rate?: number;
 };
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+export default {
+  fetch: withSupabase({ auth: "user" }, async (req, ctx) => {
+    const userId = ctx.userClaims?.sub;
+    if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-  const json = (data: unknown, status = 200) =>
-    new Response(JSON.stringify(data), { status, headers: { ...cors, "Content-Type": "application/json" } });
+    // Кто вызывает: только бригадир (запрос идёт с правами самого пользователя)
+    const { data: me } = await ctx.supabase
+      .from("profiles")
+      .select("role, company_id")
+      .eq("id", userId)
+      .single();
+    if (me?.role !== "foreman") {
+      return Response.json({ error: "Only foreman can create workers" }, { status: 403 });
+    }
 
-  const url = Deno.env.get("SUPABASE_URL")!;
-  const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
-  const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const body = (await req.json()) as Body;
+    if (!body.email || !body.password || !body.fullName) {
+      return Response.json({ error: "email, password, fullName required" }, { status: 400 });
+    }
+    if (body.password.length < 8) {
+      return Response.json({ error: "Password must be at least 8 characters" }, { status: 400 });
+    }
 
-  // Кто вызывает: проверяем, что это бригадир
-  const caller = createClient(url, anon, {
-    global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
-  });
-  const { data: { user } } = await caller.auth.getUser();
-  if (!user) return json({ error: "Unauthorized" }, 401);
+    // Создание аккаунта — админ-клиентом (обходит RLS, ключ только на сервере)
+    const admin = ctx.supabaseAdmin;
+    const { data: created, error } = await admin.auth.admin.createUser({
+      email: body.email,
+      password: body.password,
+      email_confirm: true,
+    });
+    if (error || !created.user) {
+      return Response.json({ error: error?.message ?? "Create failed" }, { status: 400 });
+    }
 
-  const { data: me } = await caller.from("profiles").select("role, company_id").eq("id", user.id).single();
-  if (me?.role !== "foreman") return json({ error: "Only foreman can create workers" }, 403);
+    const { error: pErr } = await admin.from("profiles").insert({
+      id: created.user.id,
+      company_id: me.company_id,
+      full_name: body.fullName,
+      role: "worker",
+      pay_type: body.payType ?? "daily",
+      rate: body.rate ?? 0,
+    });
+    if (pErr) {
+      await admin.auth.admin.deleteUser(created.user.id);
+      return Response.json({ error: pErr.message }, { status: 400 });
+    }
 
-  const body = (await req.json()) as Body;
-  if (!body.email || !body.password || !body.fullName) return json({ error: "email, password, fullName required" }, 400);
-  if (body.password.length < 8) return json({ error: "Password must be at least 8 characters" }, 400);
-
-  const admin = createClient(url, service);
-  const { data: created, error } = await admin.auth.admin.createUser({
-    email: body.email,
-    password: body.password,
-    email_confirm: true,
-  });
-  if (error || !created.user) return json({ error: error?.message ?? "Create failed" }, 400);
-
-  const { error: pErr } = await admin.from("profiles").insert({
-    id: created.user.id,
-    company_id: me.company_id,
-    full_name: body.fullName,
-    role: "worker",
-    pay_type: body.payType ?? "daily",
-    rate: body.rate ?? 0,
-  });
-  if (pErr) {
-    await admin.auth.admin.deleteUser(created.user.id);
-    return json({ error: pErr.message }, 400);
-  }
-
-  return json({ id: created.user.id });
-});
+    return Response.json({ id: created.user.id });
+  }),
+};

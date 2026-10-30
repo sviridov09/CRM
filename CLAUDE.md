@@ -14,6 +14,7 @@ MVP для американской строительной компании (�
 - `crm/`: React + Vite + TypeScript (TypeScript закреплён на ~6.0 — typescript-eslint пока не поддерживает 7.x).
 - `mobile/`: Expo **SDK 57** (под Expo Go), TypeScript, expo-router по желанию.
 - Бэкенд: Supabase (Postgres, Auth, Storage, Realtime, Edge Functions). Свой сервер не пишем.
+  Проект на **новых ключах**: в клиентах используется publishable key (`sb_publishable_...`) — он подставляется туда, где в доках написано anon key. Legacy anon/service_role не используем.
 - `shared/types.ts`: общие типы и утилиты (`distanceM`, `nextPingDelayMs`), импорт относительным путём.
 
 ## Функционал MVP (ядро, 2 недели)
@@ -32,10 +33,11 @@ MVP для американской строительной компании (�
 
 ## Состояние
 - [x] `supabase/migrations/0001–0003` — схема, RLS, storage. Проверено на Postgres 16: триггеры радиуса, on_site, уведомлений (left_site, absence, overuse, material_request), статусы задач, RLS рабочего.
-- [x] `supabase/functions/create-worker` — написана, не задеплоена.
+- [x] `supabase/functions/create-worker` — задеплоена (на `npm:@supabase/server@1`, `auth: "user"`, админ через `ctx.supabaseAdmin`).
 - [x] `crm/` и `mobile/` созданы шаблонами через `setup.ps1`.
-- [ ] Проект Supabase создан, миграции применены, бригадир заведён (`seed.sql`).
-- [ ] Ключи в `crm/.env.local` и `mobile/.env`.
+- [x] Проект Supabase `field-crm` (ref `quqaaavtnqmqamcndvwe`, us-east-1) создан, миграции 0001–0003 применены.
+- [ ] Бригадир заведён (`seed.sql`).
+- [x] Ключи в `crm/.env.local` и `mobile/.env`.
 - [ ] Дни 3–5: экраны CRM (вход, объекты, рабочие, материалы, задачи).
 - [ ] Дни 6–9: мобилка (задачи, старт, фоновые проверки, уведомления об уходе).
 - [ ] Дни 10–12: отчёт (фото «после», водяной знак, материалы, свои материалы, офлайн).
