@@ -1,16 +1,27 @@
+/* Тема ставится атрибутом data-theme на <html> (скрипт в index.html + lib/theme.ts).
+   Цвета текста подобраны с контрастом ≥ 4.5:1 к своему фону. */
 :root {
+  color-scheme: light;
   --bg: #f5f6f8;
   --surface: #ffffff;
+  --surface-2: #fafbfc; /* шапка таблицы, hover кнопок */
   --border: #dfe2e7;
+  --border-strong: #c3c8d0;
   --text: #1c2129;
-  --muted: #697282;
-  --accent: #1f6feb;
-  --accent-hover: #1a5fd0;
-  --danger: #c93c37;
+  --muted: #626b7a;
+  --accent: #1f6feb; /* ссылки */
+  --primary: #1f6feb; /* фон главной кнопки */
+  --primary-hover: #1a5fd0;
+  --on-primary: #ffffff;
+  --danger: #b8322d;
+  --error-bg: #fdecea;
   --warn-bg: #fff6e0;
   --warn-text: #8a5a00;
   --ok-bg: #e5f6ea;
   --ok-text: #1d7a3a;
+  --attention: #f0c96a;
+  --backdrop: rgb(15 20 30 / 0.45);
+  --shadow: 0 20px 50px rgb(0 0 0 / 0.2);
   --radius: 8px;
 
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -19,6 +30,30 @@
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0f1216;
+  --surface: #171b21;
+  --surface-2: #1d222a;
+  --border: #2c333d;
+  --border-strong: #3d4552;
+  --text: #e6e9ee;
+  --muted: #9aa3b0;
+  --accent: #6ea4ff;
+  --primary: #2f6fde;
+  --primary-hover: #2763cc;
+  --on-primary: #ffffff;
+  --danger: #ff7b72;
+  --error-bg: #3a1d1f;
+  --warn-bg: #3a2e12;
+  --warn-text: #f2c46b;
+  --ok-bg: #13301e;
+  --ok-text: #6fd391;
+  --attention: #7a5c16;
+  --backdrop: rgb(0 0 0 / 0.6);
+  --shadow: 0 20px 50px rgb(0 0 0 / 0.5);
 }
 
 * {
@@ -95,6 +130,10 @@ a {
   gap: 8px;
 }
 
+.theme-toggle {
+  font-size: 1.05rem;
+}
+
 .content {
   max-width: 1200px;
   margin: 0 auto;
@@ -138,8 +177,8 @@ a {
 }
 
 .btn:hover:not(:disabled) {
-  border-color: #c3c8d0;
-  background: #fafbfc;
+  border-color: var(--border-strong);
+  background: var(--surface-2);
 }
 
 .btn:disabled {
@@ -148,13 +187,14 @@ a {
 }
 
 .btn.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
 }
 
 .btn.primary:hover:not(:disabled) {
-  background: var(--accent-hover);
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
 }
 
 .btn.danger {
@@ -224,7 +264,7 @@ th {
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--muted);
-  background: #fafbfc;
+  background: var(--surface-2);
 }
 
 td.actions {
@@ -300,7 +340,7 @@ td > .badge:first-child {
 }
 
 .card.attention {
-  border-color: #f0c96a;
+  border-color: var(--attention);
   margin-bottom: 20px;
 }
 
@@ -444,12 +484,13 @@ legend {
   padding: 20px;
   border: none;
   border-radius: 12px;
-  box-shadow: 0 20px 50px rgb(0 0 0 / 0.2);
+  box-shadow: var(--shadow);
+  background: var(--surface);
   color: var(--text);
 }
 
 .modal::backdrop {
-  background: rgb(15 20 30 / 0.45);
+  background: var(--backdrop);
 }
 
 .modal-head {
@@ -473,7 +514,7 @@ legend {
   margin: 0 0 12px;
   padding: 8px 12px;
   border-radius: var(--radius);
-  background: #fdecea;
+  background: var(--error-bg);
   color: var(--danger);
 }
 
