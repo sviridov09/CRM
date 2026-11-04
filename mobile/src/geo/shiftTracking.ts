@@ -137,6 +137,14 @@ export async function startShift({ testMode, sessionId = null }: { testMode: boo
   });
 }
 
+/** Внеочередная проверка: следующая будет через delayMs, дальше снова по случайному расписанию. */
+export async function rescheduleCheck(delayMs: number) {
+  const state = await readShiftState();
+  if (!state) return;
+  state.nextCheckAt = Date.now() + delayMs;
+  await writeShiftState(state);
+}
+
 export async function stopShift() {
   if (await Location.hasStartedLocationUpdatesAsync(SHIFT_TASK)) {
     await Location.stopLocationUpdatesAsync(SHIFT_TASK);

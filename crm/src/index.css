@@ -402,6 +402,12 @@ ul.plain li {
   white-space: nowrap;
 }
 
+.started-earlier {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--warn-text);
+}
+
 li.over {
   color: var(--danger);
 }

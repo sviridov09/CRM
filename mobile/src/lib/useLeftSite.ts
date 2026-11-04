@@ -2,6 +2,10 @@ import * as Notifications from 'expo-notifications';
 import { useCallback, useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 import { answerLeftSite, readAwaiting, type Awaiting } from '../geo/leftSite';
+import { rescheduleCheck } from '../geo/shiftTracking';
+
+// Запас к обещанному времени: рабочему нужно дойти, а точка приходит раз в несколько минут
+const RETURN_GRACE_MINUTES = 2;
 
 /** Открытый вопрос «You left the site» и ответы на него из уведомления. */
 export function useLeftSite() {
@@ -13,7 +17,10 @@ export function useLeftSite() {
 
   const answer = useCallback(
     async (pingId: string, minutes: number) => {
-      await answerLeftSite(pingId, minutes);
+      // Проверяем, вернулся ли рабочий к обещанному времени
+      if (await answerLeftSite(pingId, minutes)) {
+        await rescheduleCheck((minutes + RETURN_GRACE_MINUTES) * 60_000);
+      }
       await refresh();
     },
     [refresh],

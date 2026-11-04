@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import type { Material, Profile, Site, Task, TaskMaterial } from '../../../shared/types'
 import { Modal } from '../components/Modal'
 import { useProfile } from '../lib/auth-context'
-import { addDaysISO, formatDate, statusLabel, todayISO } from '../lib/format'
+import { addDaysISO, formatDate, shortDate, statusLabel, todayISO } from '../lib/format'
 import { supabase } from '../lib/supabase'
 import { useAsync } from '../lib/useAsync'
 
@@ -39,10 +39,19 @@ export function TasksPage() {
   const [actionError, setActionError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase.from('tasks').select(TASK_SELECT).eq('work_date', date).order('created_at')
+    const query = supabase.from('tasks').select(TASK_SELECT)
+    // На сегодня показываем и незакрытые смены прошлых дней, как в мобилке: иначе они теряются
+    const { data, error } = await (date === todayISO()
+      ? query.or(`work_date.eq.${date},and(status.eq.in_progress,work_date.lt.${date})`)
+      : query.eq('work_date', date)
+    ).order('created_at')
     if (error) throw error
     const rows = data as TaskRow[]
-    return rows.sort((a, b) => (a.worker?.full_name ?? '').localeCompare(b.worker?.full_name ?? ''))
+    return rows.sort(
+      (a, b) =>
+        a.work_date.localeCompare(b.work_date) ||
+        (a.worker?.full_name ?? '').localeCompare(b.worker?.full_name ?? ''),
+    )
   }, [date])
   const { data: tasks, error, reload } = useAsync(load)
   const refs = useAsync(loadRefs)
@@ -124,6 +133,7 @@ export function TasksPage() {
                   </td>
                   <td>
                     {t.title}
+                    {t.work_date !== date && <div className="started-earlier">Started {shortDate(t.work_date)}</div>}
                     {t.description && <div className="muted small pre">{t.description}</div>}
                   </td>
                   <td>

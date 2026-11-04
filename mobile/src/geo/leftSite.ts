@@ -66,10 +66,13 @@ export async function promptLeftSite(pingId: string) {
   await AsyncStorage.setItem(AWAITING_KEY, JSON.stringify(awaiting));
 }
 
-/** Рабочий ответил. При ошибке вопрос остаётся открытым, чтобы ответить ещё раз. */
-export async function answerLeftSite(pingId: string, minutes: number) {
+/**
+ * Рабочий ответил. При ошибке вопрос остаётся открытым, чтобы ответить ещё раз.
+ * false — вопрос уже закрыт: ответил раньше или вышло время.
+ */
+export async function answerLeftSite(pingId: string, minutes: number): Promise<boolean> {
   const awaiting = await readAwaiting();
-  if (awaiting?.pingId !== pingId) return; // уже ответил или вышло время
+  if (awaiting?.pingId !== pingId) return false;
 
   const { error } = await supabase
     .from('location_pings')
@@ -77,6 +80,7 @@ export async function answerLeftSite(pingId: string, minutes: number) {
     .eq('id', pingId);
   if (error) throw error;
   await finish(awaiting);
+  return true;
 }
 
 /** Вызывается при каждом обновлении сервиса: вышло время — записываем no_response. */

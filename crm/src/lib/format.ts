@@ -31,6 +31,11 @@ export function formatDate(iso: string): string {
   })
 }
 
+/** "2026-11-04" → "Nov 4" */
+export function shortDate(iso: string): string {
+  return parseISODate(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
 const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
 export const money = (n: number) => usd.format(n)
 
