@@ -41,7 +41,7 @@ MVP для американской строительной компании (�
 - [x] `create-worker` задеплоена через CLI без проверки JWT на шлюзе (`verify_jwt = false` в `supabase/config.toml`; токен проверяет сама функция через `withSupabase({ auth: "user" })`).
 - [x] Ключи в `crm/.env.local` и `mobile/.env`.
 - [~] Дни 3–5: экраны CRM (вход, объекты, рабочие, материалы, задачи) — написаны, собираются, на живой базе ещё не проверены.
-- [~] Прототип фоновой геолокации (`mobile/src/geo/shiftTracking.ts`, экран-заглушка `App.tsx`): собирается, на телефоне ещё не проверен. Нужен development build.
+- [~] Прототип фоновой геолокации (`mobile/src/geo/shiftTracking.ts`, экран-заглушка `App.tsx`): development build стоит на телефоне (Samsung SM-S901E), запускается; работа в фоне ещё не проверена.
 - [ ] Дни 6–9: мобилка (задачи, старт, фоновые проверки, уведомления об уходе).
 - [ ] Дни 10–12: отчёт (фото «после», водяной знак, материалы, свои материалы, офлайн).
 - [ ] Дни 13–14: уведомления в CRM, вычет времени, Excel, сборка APK.
@@ -50,4 +50,5 @@ MVP для американской строительной компании (�
 - Схему меняем **только новыми миграциями** (`0004_...sql`), старые не правим.
 - Ключ `service_role` — только в Edge Functions, никогда в `crm/` или `mobile/`.
 - `.env*` не коммитим.
+- Android-сборка — на **JDK 17** (`C:\Program Files\Microsoft\jdk-17.0.21.21-hotspot`). На JDK 25 из Android Studio падает шаг CMake (`configureCMakeDebug`).
 - Фоновая геолокация не работает в Expo Go: для неё development build (`npx expo run:android` или `eas build -p android --profile preview`).
