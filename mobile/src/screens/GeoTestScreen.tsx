@@ -54,7 +54,7 @@ export function GeoTestScreen({ onBack }: { onBack: () => void }) {
   async function toggleShift() {
     try {
       if (running) await stopShift();
-      else await startShift(testMode);
+      else await startShift({ testMode });
     } catch (e) {
       Alert.alert('Error', e instanceof Error ? e.message : String(e));
     }

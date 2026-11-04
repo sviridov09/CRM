@@ -10,8 +10,9 @@ import {
   View,
 } from 'react-native';
 import { workerEmail } from '../../../shared/types';
+import { EyeIcon } from '../components/EyeIcon';
 import { supabase } from '../lib/supabase';
-import { ui } from '../lib/ui';
+import { colors, ui } from '../lib/ui';
 
 export function LoginScreen() {
   const [login, setLogin] = useState('');
@@ -81,7 +82,7 @@ export function LoginScreen() {
               accessibilityRole="button"
               accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
             >
-              <Text style={ui.buttonSecondaryText}>{showPassword ? 'Hide' : 'Show'}</Text>
+              <EyeIcon crossed={showPassword} color={colors.muted} />
             </Pressable>
           </View>
         </View>
@@ -102,13 +103,13 @@ export function LoginScreen() {
 
 const styles = StyleSheet.create({
   field: { gap: 6 },
-  passwordInput: { paddingRight: 72 },
+  passwordInput: { paddingRight: 52 },
   toggle: {
     position: 'absolute',
     right: 0,
     top: 0,
     bottom: 0,
-    minWidth: 64,
+    minWidth: 48,
     minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',

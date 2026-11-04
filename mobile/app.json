@@ -31,6 +31,12 @@
           "isAndroidForegroundServiceEnabled": true,
           "locationAlwaysAndWhenInUsePermission": "Field CRM checks your location only during your shift."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Field CRM uses the camera for before and after photos of your work."
+        }
       ]
     ]
   }

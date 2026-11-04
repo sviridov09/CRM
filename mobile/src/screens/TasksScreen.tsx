@@ -1,51 +1,24 @@
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
-import type { Profile, Site, Task, TaskMaterial, TaskStatus } from '../../../shared/types';
+import type { Profile } from '../../../shared/types';
 import { supabase } from '../lib/supabase';
+import { loadTodayTasks, TASK_STATUS, type TaskRow } from '../lib/tasks';
 import { colors, ui } from '../lib/ui';
 
-type TaskRow = Task & {
-  site: Pick<Site, 'name' | 'address' | 'lat' | 'lng' | 'radius_m'> | null;
-  task_materials: (TaskMaterial & { material: { name: string; unit: string } | null })[];
-};
+type Props = { profile: Profile; onOpenTask: (task: TaskRow) => void; onOpenGeoTest: () => void };
 
-const TASK_SELECT =
-  '*, site:site_id(name, address, lat, lng, radius_m), task_materials(*, material:material_id(name, unit))';
-
-const STATUS: Record<TaskStatus, { label: string; bg: string; fg: string }> = {
-  assigned: { label: 'To do', bg: '#e8ebf0', fg: colors.muted },
-  in_progress: { label: 'In progress', bg: '#fff6e0', fg: '#8a5a00' },
-  done: { label: 'Done', bg: '#e5f6ea', fg: '#1d7a3a' },
-};
-
-/** Сегодня по часам телефона, YYYY-MM-DD. */
-function todayISO(): string {
-  const d = new Date();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${d.getFullYear()}-${m}-${day}`;
-}
-
-type Props = { profile: Profile; onOpenGeoTest: () => void };
-
-export function TasksScreen({ profile, onOpenGeoTest }: Props) {
+export function TasksScreen({ profile, onOpenTask, onOpenGeoTest }: Props) {
   const [tasks, setTasks] = useState<TaskRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('tasks')
-      .select(TASK_SELECT)
-      .eq('worker_id', profile.id)
-      .eq('work_date', todayISO())
-      .order('created_at');
-    if (error) {
-      setError(error.message);
-      return;
+    try {
+      setTasks(await loadTodayTasks(profile.id));
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
     }
-    setError(null);
-    setTasks(data as TaskRow[]);
   }, [profile.id]);
 
   useEffect(() => {
@@ -77,7 +50,7 @@ export function TasksScreen({ profile, onOpenGeoTest }: Props) {
         keyExtractor={(t) => t.id}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} />}
-        renderItem={({ item }) => <TaskCard task={item} />}
+        renderItem={({ item }) => <TaskCard task={item} onPress={() => onOpenTask(item)} />}
         ListEmptyComponent={
           <Text style={[ui.muted, styles.empty]}>{tasks ? 'No tasks for today.' : 'Loading…'}</Text>
         }
@@ -93,10 +66,10 @@ export function TasksScreen({ profile, onOpenGeoTest }: Props) {
   );
 }
 
-function TaskCard({ task }: { task: TaskRow }) {
-  const status = STATUS[task.status];
+function TaskCard({ task, onPress }: { task: TaskRow; onPress: () => void }) {
+  const status = TASK_STATUS[task.status];
   return (
-    <View style={styles.card}>
+    <Pressable style={styles.card} onPress={onPress}>
       <View style={styles.cardHead}>
         <Text style={styles.title}>{task.title}</Text>
         <Text style={[styles.badge, { backgroundColor: status.bg, color: status.fg }]}>{status.label}</Text>
@@ -117,7 +90,7 @@ function TaskCard({ task }: { task: TaskRow }) {
           ))}
         </View>
       )}
-    </View>
+    </Pressable>
   );
 }
 
