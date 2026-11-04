@@ -61,13 +61,8 @@ export function TasksScreen({ profile, onOpenGeoTest }: Props) {
   return (
     <View style={ui.screen}>
       <View style={styles.header}>
-        <View style={{ flex: 1 }}>
-          <Text style={ui.h1}>Today</Text>
-          <Text style={ui.muted}>{profile.full_name}</Text>
-        </View>
-        <Pressable onPress={() => void supabase.auth.signOut()} hitSlop={10}>
-          <Text style={ui.buttonSecondaryText}>Sign out</Text>
-        </Pressable>
+        <Text style={ui.h1}>Today</Text>
+        <Text style={ui.muted}>{profile.full_name}</Text>
       </View>
 
       {error && <Text style={[ui.error, styles.errorBox]}>{error}</Text>}
@@ -82,11 +77,17 @@ export function TasksScreen({ profile, onOpenGeoTest }: Props) {
           <Text style={[ui.muted, styles.empty]}>{tasks ? 'No tasks for today.' : 'Loading…'}</Text>
         }
         ListFooterComponent={
-          __DEV__ ? (
-            <Pressable style={ui.buttonSecondary} onPress={onOpenGeoTest}>
-              <Text style={ui.buttonSecondaryText}>Location test (dev)</Text>
+          <>
+            {/* Sign out внизу: правый верхний угол в dev-сборке занимает шестерёнка Expo */}
+            <Pressable style={ui.buttonSecondary} onPress={() => void supabase.auth.signOut()}>
+              <Text style={ui.buttonSecondaryText}>Sign out</Text>
             </Pressable>
-          ) : null
+            {__DEV__ && (
+              <Pressable style={ui.buttonSecondary} onPress={onOpenGeoTest}>
+                <Text style={ui.buttonSecondaryText}>Location test (dev)</Text>
+              </Pressable>
+            )}
+          </>
         }
       />
     </View>
@@ -122,7 +123,7 @@ function TaskCard({ task }: { task: TaskRow }) {
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 12 },
+  header: { paddingHorizontal: 20, paddingTop: 56, paddingBottom: 12 },
   errorBox: { marginHorizontal: 20, marginBottom: 8 },
   list: { paddingHorizontal: 20, paddingBottom: 40, gap: 12 },
   empty: { textAlign: 'center', paddingVertical: 48 },
