@@ -90,7 +90,7 @@ export function TasksPage() {
         {tasks && tasks.length > 0 && (
           <>
             {' · '}
-            {tasks.length} tasks · {count('in_progress')} in progress · {count('done')} done
+            {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'} · {count('in_progress')} in progress · {count('done')} done
           </>
         )}
       </p>

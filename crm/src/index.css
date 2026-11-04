@@ -298,6 +298,10 @@ ul.plain {
   list-style: none;
 }
 
+ul.plain li {
+  white-space: nowrap;
+}
+
 li.over {
   color: var(--danger);
 }
