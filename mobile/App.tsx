@@ -5,8 +5,10 @@ import { supabase } from './src/lib/supabase';
 import type { TaskRow } from './src/lib/tasks';
 import { ui } from './src/lib/ui';
 import { useAuth } from './src/lib/useAuth';
+import { useLeftSite } from './src/lib/useLeftSite';
 import { ConsentScreen, isSetupComplete } from './src/screens/ConsentScreen';
 import { GeoTestScreen } from './src/screens/GeoTestScreen';
+import { LeftSiteScreen } from './src/screens/LeftSiteScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { TaskScreen } from './src/screens/TaskScreen';
 import { TasksScreen } from './src/screens/TasksScreen';
@@ -22,6 +24,7 @@ export default function App() {
 
 function Root() {
   const { state, retry } = useAuth();
+  const { awaiting, answer } = useLeftSite();
   const [setupDone, setSetupDone] = useState<boolean | null>(null);
   const [geoTest, setGeoTest] = useState(false);
   const [openTask, setOpenTask] = useState<TaskRow | null>(null);
@@ -48,6 +51,7 @@ function Root() {
 
   if (setupDone === null) return <Loading />;
   if (!setupDone) return <ConsentScreen onDone={finishSetup} />;
+  if (awaiting) return <LeftSiteScreen awaiting={awaiting} onAnswer={answer} />;
   if (geoTest) return <GeoTestScreen onBack={() => setGeoTest(false)} />;
   if (openTask) return <TaskScreen task={openTask} onBack={() => setOpenTask(null)} />;
   return <TasksScreen profile={state.profile} onOpenTask={setOpenTask} onOpenGeoTest={() => setGeoTest(true)} />;

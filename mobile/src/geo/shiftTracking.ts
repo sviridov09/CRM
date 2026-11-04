@@ -12,6 +12,7 @@ import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import { nextPingDelayMs } from '../../../shared/types';
 import { supabase } from '../lib/supabase';
+import { clearLeftSite, expireLeftSite, promptLeftSite } from './leftSite';
 
 export const SHIFT_TASK = 'shift-location';
 const STATE_KEY = 'shift-proto-state';
@@ -61,12 +62,13 @@ async function flushPings(state: ShiftState) {
   const { data, error } = await supabase
     .from('location_pings')
     .insert(state.pendingPings)
-    .select('device_time, on_site');
+    .select('id, device_time, on_site');
   if (error) return;
   state.pendingPings = [];
   for (const row of data) {
     const check = state.checks.find((c) => c.at === Date.parse(row.device_time));
     if (check) check.onSite = row.on_site;
+    if (row.on_site === false) await promptLeftSite(row.id);
   }
 }
 
@@ -99,6 +101,7 @@ TaskManager.defineTask<{ locations: Location.LocationObject[] }>(SHIFT_TASK, asy
   // Сначала на диск: сеть может зависнуть, а проверку терять нельзя
   await writeShiftState(state);
 
+  await expireLeftSite();
   if (state.pendingPings.length > 0) {
     await flushPings(state);
     await writeShiftState(state);
@@ -108,6 +111,7 @@ TaskManager.defineTask<{ locations: Location.LocationObject[] }>(SHIFT_TASK, asy
 export async function startShift({ testMode, sessionId = null }: { testMode: boolean; sessionId?: string | null }) {
   const now = Date.now();
   const prev = await readShiftState();
+  if (prev?.sessionId !== sessionId) await clearLeftSite();
   await writeShiftState({
     testMode,
     sessionId,
@@ -137,6 +141,7 @@ export async function stopShift() {
   if (await Location.hasStartedLocationUpdatesAsync(SHIFT_TASK)) {
     await Location.stopLocationUpdatesAsync(SHIFT_TASK);
   }
+  await clearLeftSite();
 }
 
 export async function isShiftRunning() {
