@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
-import { isShiftRunning, startShift, stopShift } from '../geo/shiftTracking';
+import { isShiftRunning, readShiftState, startShift, stopShift, type ShiftState } from '../geo/shiftTracking';
 import {
   createSession,
   distanceToSite,
@@ -23,9 +23,12 @@ export function TaskScreen({ task: initial, onBack }: { task: TaskRow; onBack: (
   const [step, setStep] = useState<string | null>(null); // что сейчас происходит при старте
   const [error, setError] = useState<string | null>(null);
   const [testMode, setTestMode] = useState(false);
+  const [switching, setSwitching] = useState(false); // сервис включается или выключается
+  const [shift, setShift] = useState<ShiftState | null>(null);
 
   const refresh = useCallback(async () => {
     setTracking(await isShiftRunning());
+    setShift(await readShiftState());
     if (task.status === 'in_progress') setSession(await loadOpenSession(task.id));
   }, [task.id, task.status]);
 
@@ -55,6 +58,7 @@ export function TaskScreen({ task: initial, onBack }: { task: TaskRow; onBack: (
       setTask((t) => ({ ...t, status: 'in_progress' }));
       await startShift({ testMode, sessionId: opened.id });
       setTracking(true);
+      setShift(await readShiftState());
     } catch (e) {
       setError(errorText(e));
     } finally {
@@ -65,17 +69,27 @@ export function TaskScreen({ task: initial, onBack }: { task: TaskRow; onBack: (
   async function resume() {
     if (!session) return;
     setError(null);
+    setSwitching(true);
     try {
       await startShift({ testMode, sessionId: session.id });
-      setTracking(true);
+      await refresh();
     } catch (e) {
       setError(errorText(e));
+    } finally {
+      setSwitching(false);
     }
   }
 
   async function stopTracking() {
-    await stopShift();
-    setTracking(false);
+    setSwitching(true);
+    try {
+      await stopShift();
+      await refresh();
+    } catch (e) {
+      setError(errorText(e));
+    } finally {
+      setSwitching(false);
+    }
   }
 
   const status = TASK_STATUS[task.status];
@@ -114,7 +128,7 @@ export function TaskScreen({ task: initial, onBack }: { task: TaskRow; onBack: (
       {__DEV__ && task.status !== 'done' && !tracking && (
         <View style={styles.row}>
           <Text style={ui.muted}>Test checks (every 2–4 min)</Text>
-          <Switch value={testMode} onValueChange={setTestMode} disabled={busy} />
+          <Switch value={testMode} onValueChange={setTestMode} disabled={busy || switching} />
         </View>
       )}
 
@@ -143,16 +157,22 @@ export function TaskScreen({ task: initial, onBack }: { task: TaskRow; onBack: (
             session && (
               <>
                 <Text style={ui.error}>Location checks are off. Turn them back on to continue your shift.</Text>
-                <Pressable style={ui.button} onPress={() => void resume()}>
-                  <Text style={ui.buttonText}>Resume location checks</Text>
+                <Pressable style={[ui.button, switching && ui.disabled]} disabled={switching} onPress={() => void resume()}>
+                  <Text style={ui.buttonText}>{switching ? 'Turning on…' : 'Resume location checks'}</Text>
                 </Pressable>
               </>
             )
           )}
           {/* Настоящий финиш с отчётом — дни 10–12; пока сервис останавливаем вручную */}
+          {__DEV__ && tracking && shift && (
+            <Text style={ui.muted}>
+              Mode: {shift.testMode ? 'test (2–4 min)' : 'real (60–120 min)'} · next check after{' '}
+              {new Date(shift.nextCheckAt).toLocaleTimeString()}
+            </Text>
+          )}
           {__DEV__ && tracking && (
-            <Pressable style={ui.buttonSecondary} onPress={() => void stopTracking()}>
-              <Text style={ui.buttonSecondaryText}>Stop location checks (dev)</Text>
+            <Pressable style={ui.buttonSecondary} disabled={switching} onPress={() => void stopTracking()}>
+              <Text style={ui.buttonSecondaryText}>{switching ? 'Stopping…' : 'Stop location checks (dev)'}</Text>
             </Pressable>
           )}
         </View>
