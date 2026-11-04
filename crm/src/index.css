@@ -134,6 +134,106 @@ a {
   font-size: 1.05rem;
 }
 
+/* ── Уведомления ────────────────────────────────────────── */
+
+.bell {
+  position: relative;
+}
+
+.bell .icon-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+}
+
+.bell-count {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+.bell-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  width: min(380px, calc(100vw - 24px));
+  max-height: min(480px, calc(100vh - 90px));
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.bell-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.bell-panel .error {
+  margin: 10px 14px;
+}
+
+.bell-empty {
+  margin: 0;
+  padding: 24px 14px;
+  text-align: center;
+}
+
+.bell-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bell-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-left: 3px solid transparent;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bell-list li:last-child .bell-item {
+  border-bottom: none;
+}
+
+.bell-item:hover {
+  background: var(--surface-2);
+}
+
+.bell-item.unread {
+  border-left-color: var(--primary);
+  color: var(--text);
+  font-weight: 500;
+}
+
+.bell-item .small {
+  font-weight: 400;
+}
+
 .content {
   max-width: 1200px;
   margin: 0 auto;
@@ -555,6 +655,19 @@ legend {
 
   .user {
     margin-left: auto;
+  }
+
+  /* На телефоне панель привязываем к экрану: у края шапки она бы вылезла за него */
+  .bell {
+    position: static;
+  }
+
+  .bell-panel {
+    position: fixed;
+    top: 52px;
+    left: 12px;
+    right: 12px;
+    width: auto;
   }
 
   .content {

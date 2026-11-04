@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth, useProfile } from '../lib/auth-context'
+import { NotificationBell } from './NotificationBell'
 import { ThemeToggle } from './ThemeToggle'
 
 const links = [
@@ -26,6 +27,7 @@ export function Layout() {
         </nav>
         <div className="user">
           <span className="muted">{profile.full_name}</span>
+          <NotificationBell />
           <ThemeToggle />
           <button type="button" className="btn link" onClick={() => void signOut()}>
             Sign out
