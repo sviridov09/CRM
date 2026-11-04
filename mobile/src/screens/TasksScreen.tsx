@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import type { Profile } from '../../../shared/types';
 import { supabase } from '../lib/supabase';
-import { loadTodayTasks, TASK_STATUS, type TaskRow } from '../lib/tasks';
+import { loadTodayTasks, shortDate, TASK_STATUS, todayISO, type TaskRow } from '../lib/tasks';
 import { colors, ui } from '../lib/ui';
 
 type Props = { profile: Profile; onOpenTask: (task: TaskRow) => void; onOpenGeoTest: () => void };
@@ -74,6 +74,7 @@ function TaskCard({ task, onPress }: { task: TaskRow; onPress: () => void }) {
         <Text style={styles.title}>{task.title}</Text>
         <Text style={[styles.badge, { backgroundColor: status.bg, color: status.fg }]}>{status.label}</Text>
       </View>
+      {task.work_date !== todayISO() && <Text style={ui.label}>Started {shortDate(task.work_date)}</Text>}
       {task.site && (
         <Text style={ui.muted}>
           {task.site.name} · {task.site.address}
