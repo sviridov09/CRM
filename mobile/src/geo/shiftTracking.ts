@@ -45,7 +45,9 @@ export type ShiftState = {
 
 export async function readShiftState(): Promise<ShiftState | null> {
   const raw = await AsyncStorage.getItem(STATE_KEY);
-  return raw ? (JSON.parse(raw) as ShiftState) : null;
+  if (!raw) return null;
+  // Смена могла начаться на старой версии приложения: новых полей в сохранённом состоянии нет
+  return { sessionId: null, pendingPings: [], ...(JSON.parse(raw) as Partial<ShiftState>) } as ShiftState;
 }
 
 async function writeShiftState(state: ShiftState) {
@@ -115,7 +117,7 @@ export async function startShift({ testMode, sessionId = null }: { testMode: boo
     lastUpdateAt: null,
     checks: [],
     // Возобновили ту же смену — неотправленные проверки сохраняем
-    pendingPings: sessionId && prev?.sessionId === sessionId ? (prev.pendingPings ?? []) : [],
+    pendingPings: sessionId && prev?.sessionId === sessionId ? prev.pendingPings : [],
   });
   await Location.startLocationUpdatesAsync(SHIFT_TASK, {
     // High = GPS: радиус объекта ~150 м, сетевой точности (~100 м) мало
