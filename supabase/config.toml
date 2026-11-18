@@ -9,3 +9,7 @@ verify_jwt = false
 
 [functions.reset-worker-password]
 verify_jwt = false
+
+# Зовёт триггер базы через pg_net без токена; защита — атомарный pushed_at в самой функции
+[functions.send-push]
+verify_jwt = false

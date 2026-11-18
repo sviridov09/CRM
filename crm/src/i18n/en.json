@@ -37,5 +37,14 @@
     "location_off": "{{worker}} turned off location at {{at}} · {{site}}",
     "location_on": "{{worker}} turned location back on ({{at}})",
     "no_signal": "No signal from {{worker}} since {{at}} · {{site}}"
+  },
+  "push": {
+    "on": "Push notifications are on.",
+    "turnOff": "Turn off",
+    "offHint": "Get alerts even when the CRM is closed.",
+    "enable": "Enable notifications",
+    "denied": "Notifications are blocked in your browser settings for this site.",
+    "iosInstall": "On iPhone: tap Share → Add to Home Screen, open Field CRM from the Home Screen, then enable notifications here.",
+    "unsupported": "Push notifications aren't available in this browser."
   }
 }

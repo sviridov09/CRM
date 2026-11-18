@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { Profile } from '../../../shared/types'
 import { AuthContext, type AuthState } from './auth-context'
+import { forgetPushOnServer } from './push'
 import { supabase } from './supabase'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -46,6 +47,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       ...state,
       signOut: async () => {
+        // Пока токен ещё действует: этот браузер перестаёт получать push за этого бригадира
+        await forgetPushOnServer().catch(() => undefined)
         await supabase.auth.signOut()
       },
     }),

@@ -184,6 +184,22 @@ a {
   border-bottom: 1px solid var(--border);
 }
 
+.bell-push {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+.bell-push .error {
+  flex-basis: 100%;
+  margin: 0;
+}
+
 .bell-panel .error {
   margin: 10px 14px;
 }

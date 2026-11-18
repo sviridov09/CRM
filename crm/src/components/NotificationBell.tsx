@@ -13,6 +13,7 @@ import {
 } from '../lib/notifications'
 import { supabase } from '../lib/supabase'
 import { useAsync } from '../lib/useAsync'
+import { PushToggle } from './PushToggle'
 
 const timeAgo = (iso: string) =>
   new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
@@ -122,6 +123,7 @@ export function NotificationBell() {
               </button>
             )}
           </div>
+          <PushToggle />
           {problem && <p className="error">{problem}</p>}
           {data && data.items.length === 0 && <p className="muted bell-empty">{t('bell.empty')}</p>}
           <ul className="bell-list">
