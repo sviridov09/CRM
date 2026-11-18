@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import type { Profile } from '../../../shared/types';
+import { LanguagePicker } from '../components/LanguagePicker';
+import { formatShortDate } from '../i18n';
 import { supabase } from '../lib/supabase';
-import { loadTodayTasks, shortDate, TASK_STATUS, todayISO, type TaskRow } from '../lib/tasks';
+import { loadTodayTasks, TASK_STATUS, todayISO, type TaskRow } from '../lib/tasks';
 import { colors, ui } from '../lib/ui';
 
 type Props = {
@@ -12,6 +15,7 @@ type Props = {
 };
 
 export function TasksScreen({ profile, onOpenTask, onOpenGeoTest }: Props) {
+  const { t } = useTranslation();
   const [tasks, setTasks] = useState<TaskRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -39,11 +43,11 @@ export function TasksScreen({ profile, onOpenTask, onOpenGeoTest }: Props) {
     <View style={ui.screen}>
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
-          <Text style={ui.h1}>Today</Text>
+          <Text style={ui.h1}>{t('today.title')}</Text>
           <Text style={ui.muted}>{profile.full_name}</Text>
         </View>
         <Pressable onPress={() => void supabase.auth.signOut()} hitSlop={10}>
-          <Text style={ui.buttonSecondaryText}>Sign out</Text>
+          <Text style={ui.buttonSecondaryText}>{t('common.signOut')}</Text>
         </Pressable>
       </View>
 
@@ -51,7 +55,7 @@ export function TasksScreen({ profile, onOpenTask, onOpenGeoTest }: Props) {
 
       <FlatList
         data={tasks ?? []}
-        keyExtractor={(t) => t.id}
+        keyExtractor={(task) => task.id}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} />}
         renderItem={({ item }) => (
@@ -62,14 +66,17 @@ export function TasksScreen({ profile, onOpenTask, onOpenGeoTest }: Props) {
           />
         )}
         ListEmptyComponent={
-          <Text style={[ui.muted, styles.empty]}>{tasks ? 'No tasks for today.' : 'Loading…'}</Text>
+          <Text style={[ui.muted, styles.empty]}>{tasks ? t('today.empty') : t('common.loading')}</Text>
         }
         ListFooterComponent={
-          __DEV__ ? (
-            <Pressable style={ui.buttonSecondary} onPress={onOpenGeoTest}>
-              <Text style={ui.buttonSecondaryText}>Location test (dev)</Text>
-            </Pressable>
-          ) : null
+          <>
+            <LanguagePicker />
+            {__DEV__ && (
+              <Pressable style={ui.buttonSecondary} onPress={onOpenGeoTest}>
+                <Text style={ui.buttonSecondaryText}>{t('today.locationTest')}</Text>
+              </Pressable>
+            )}
+          </>
         }
       />
     </View>
@@ -77,14 +84,19 @@ export function TasksScreen({ profile, onOpenTask, onOpenGeoTest }: Props) {
 }
 
 function TaskCard({ task, onPress, onFinish }: { task: TaskRow; onPress: () => void; onFinish: () => void }) {
+  const { t } = useTranslation();
   const status = TASK_STATUS[task.status];
   return (
     <Pressable style={styles.card} onPress={onPress}>
       <View style={styles.cardHead}>
         <Text style={styles.title}>{task.title}</Text>
-        <Text style={[styles.badge, { backgroundColor: status.bg, color: status.fg }]}>{status.label}</Text>
+        <Text style={[styles.badge, { backgroundColor: status.bg, color: status.fg }]}>
+          {t(`status.${task.status}`)}
+        </Text>
       </View>
-      {task.work_date !== todayISO() && <Text style={ui.label}>Started {shortDate(task.work_date)}</Text>}
+      {task.work_date !== todayISO() && (
+        <Text style={ui.label}>{t('today.startedOn', { date: formatShortDate(task.work_date) })}</Text>
+      )}
       {task.site && (
         <Text style={ui.muted}>
           {task.site.name} · {task.site.address}
@@ -93,17 +105,17 @@ function TaskCard({ task, onPress, onFinish }: { task: TaskRow; onPress: () => v
       {task.description && <Text style={ui.text}>{task.description}</Text>}
       {task.task_materials.length > 0 && (
         <View style={styles.materials}>
-          <Text style={ui.label}>Materials</Text>
+          <Text style={ui.label}>{t('today.materials')}</Text>
           {task.task_materials.map((tm) => (
             <Text key={tm.id} style={ui.muted}>
-              {tm.material?.name}: {tm.planned_qty} {tm.material?.unit}
+              {t('task.material', { name: tm.material?.name, qty: tm.planned_qty, unit: tm.material?.unit })}
             </Text>
           ))}
         </View>
       )}
       {task.status === 'in_progress' && (
         <Pressable style={[ui.button, styles.finish]} onPress={onFinish}>
-          <Text style={ui.buttonText}>Finish shift</Text>
+          <Text style={ui.buttonText}>{t('task.finish')}</Text>
         </Pressable>
       )}
     </Pressable>

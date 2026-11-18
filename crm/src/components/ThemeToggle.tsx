@@ -1,9 +1,12 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { applyTheme, currentTheme } from '../lib/theme'
 
 export function ThemeToggle() {
+  const { t } = useTranslation()
   const [theme, setTheme] = useState(currentTheme)
   const next = theme === 'dark' ? 'light' : 'dark'
+  const label = t('nav.switchTheme', { theme: t(next === 'dark' ? 'nav.themeDark' : 'nav.themeLight') })
 
   return (
     <button
@@ -13,8 +16,8 @@ export function ThemeToggle() {
         applyTheme(next)
         setTheme(next)
       }}
-      aria-label={`Switch to ${next} theme`}
-      title={`Switch to ${next} theme`}
+      aria-label={label}
+      title={label}
     >
       {theme === 'dark' ? '☀' : '🌙'}
     </button>

@@ -13,6 +13,7 @@ import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import { nextPingDelayMs } from '../../../shared/types';
 import { ShiftGuard } from '../../modules/shift-guard';
+import i18n from '../i18n';
 import { supabase } from '../lib/supabase';
 import { clearLeftSite, expireLeftSite, promptLeftSite } from './leftSite';
 import { clearShiftHealth, reportShiftHealth } from './shiftHealth';
@@ -112,7 +113,7 @@ TaskManager.defineTask<{ locations: Location.LocationObject[] }>(SHIFT_TASK, asy
     await writeShiftState(state);
   }
   if (state.sessionId) {
-    ShiftGuard?.startWatching(); // после перезапуска процесса приёмник нужно включить заново
+    startGuard(); // после перезапуска процесса приёмник нужно включить заново
     await reportShiftHealth(state.sessionId);
   }
 });
@@ -135,6 +136,11 @@ TaskManager.defineTask(SHIFT_WATCH_TASK, async () => {
     return BackgroundTask.BackgroundTaskResult.Failed;
   }
 });
+
+/** Нативное слежение за геолокацией с текстом предупреждения на языке приложения. */
+function startGuard() {
+  ShiftGuard?.startWatching(i18n.t('locationOff.servicesTitle'), i18n.t('locationOff.notificationBody'));
+}
 
 export async function startShift({ testMode, sessionId = null }: { testMode: boolean; sessionId?: string | null }) {
   const now = Date.now();
@@ -165,13 +171,13 @@ export async function startShift({ testMode, sessionId = null }: { testMode: boo
     timeInterval: testMode ? 60_000 : 5 * 60_000,
     distanceInterval: 0,
     foregroundService: {
-      notificationTitle: "You're on shift",
-      notificationBody: 'Your location is checked from time to time until you finish work.',
+      notificationTitle: i18n.t('shift.serviceTitle'),
+      notificationBody: i18n.t('shift.serviceBody'),
       killServiceOnDestroy: false,
     },
   });
   if (sessionId) {
-    ShiftGuard?.startWatching();
+    startGuard();
     await BackgroundTask.registerTaskAsync(SHIFT_WATCH_TASK, { minimumInterval: 15 });
     await reportShiftHealth(sessionId);
   }

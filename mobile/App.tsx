@@ -1,5 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { supabase } from './src/lib/supabase';
 import type { TaskRow } from './src/lib/tasks';
@@ -25,6 +26,7 @@ export default function App() {
 }
 
 function Root() {
+  const { t } = useTranslation();
   const { state, retry } = useAuth();
   const { awaiting, answer } = useLeftSite();
   const health = useShiftHealth();
@@ -41,14 +43,14 @@ function Root() {
   if (state.status === 'loading') return <Loading />;
   if (state.status === 'signed-out') return <LoginScreen />;
   if (state.status === 'foreman') {
-    return <Notice title="Use the web CRM" body="This app is for workers. Foremen manage work in the web CRM." />;
+    return <Notice title={t('account.foremanTitle')} body={t('account.foremanBody')} />;
   }
   if (state.status === 'disabled') {
-    return <Notice title="Account disabled" body="Ask your foreman to turn your account back on." />;
+    return <Notice title={t('account.disabledTitle')} body={t('account.disabledBody')} />;
   }
   if (state.status === 'error') {
     return (
-      <Notice title="Can't load your account" body={state.message} onRetry={() => void retry(state.userId)} />
+      <Notice title={t('account.loadErrorTitle')} body={state.message} onRetry={() => void retry(state.userId)} />
     );
   }
 
@@ -89,17 +91,18 @@ function Loading() {
 }
 
 function Notice(props: { title: string; body: string; onRetry?: () => void }) {
+  const { t } = useTranslation();
   return (
     <ScrollView style={ui.screen} contentContainerStyle={ui.centered}>
       <Text style={ui.h1}>{props.title}</Text>
       <Text style={ui.text}>{props.body}</Text>
       {props.onRetry && (
         <Pressable style={ui.button} onPress={props.onRetry}>
-          <Text style={ui.buttonText}>Try again</Text>
+          <Text style={ui.buttonText}>{t('common.tryAgain')}</Text>
         </Pressable>
       )}
       <Pressable style={ui.buttonSecondary} onPress={() => void supabase.auth.signOut()}>
-        <Text style={ui.buttonSecondaryText}>Sign out</Text>
+        <Text style={ui.buttonSecondaryText}>{t('common.signOut')}</Text>
       </Pressable>
     </ScrollView>
   );

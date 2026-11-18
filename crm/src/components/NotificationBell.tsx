@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useProfile } from '../lib/auth-context'
 import { errorMessage } from '../lib/format'
@@ -17,6 +18,7 @@ const timeAgo = (iso: string) =>
   new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
 
 export function NotificationBell() {
+  const { t } = useTranslation()
   const profile = useProfile()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -100,8 +102,8 @@ export function NotificationBell() {
         className="icon-btn"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
-        title="Notifications"
+        aria-label={unread > 0 ? t('bell.unread', { count: unread }) : t('bell.title')}
+        title={t('bell.title')}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -113,15 +115,15 @@ export function NotificationBell() {
       {open && (
         <div className="bell-panel">
           <div className="bell-head">
-            <strong>Notifications</strong>
+            <strong>{t('bell.title')}</strong>
             {unread > 0 && (
               <button type="button" className="btn link" onClick={() => void readAll()}>
-                Mark all read
+                {t('bell.markAllRead')}
               </button>
             )}
           </div>
           {problem && <p className="error">{problem}</p>}
-          {data && data.items.length === 0 && <p className="muted bell-empty">No notifications yet.</p>}
+          {data && data.items.length === 0 && <p className="muted bell-empty">{t('bell.empty')}</p>}
           <ul className="bell-list">
             {data?.items.map((n) => (
               <li key={n.id}>

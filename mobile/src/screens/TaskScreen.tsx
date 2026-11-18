@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { isShiftRunning, readShiftState, startShift, stopShift, type ShiftState } from '../geo/shiftTracking';
+import { formatTime } from '../i18n';
 import {
   createSession,
   distanceToSite,
@@ -20,6 +22,7 @@ const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 type Props = { task: TaskRow; finishOnOpen?: boolean; onBack: () => void };
 
 export function TaskScreen({ task: initial, finishOnOpen = false, onBack }: Props) {
+  const { t } = useTranslation();
   const [task, setTask] = useState(initial);
   const [session, setSession] = useState<OpenSession | null>(null);
   const [tracking, setTracking] = useState(false);
@@ -43,23 +46,23 @@ export function TaskScreen({ task: initial, finishOnOpen = false, onBack }: Prop
   async function start() {
     setError(null);
     try {
-      if (await isShiftRunning()) throw new Error('Another shift is already running. Finish it first.');
+      if (await isShiftRunning()) throw new Error(t('task.anotherShift'));
 
-      setStep('Getting your location…');
+      setStep(t('task.gettingLocation'));
       const before = await getPosition();
       if (distanceToSite(task, before) > task.site!.radius_m) throw new Error(offSiteMessage(task, before));
 
-      setStep('Take a photo of the site before you start');
+      setStep(t('task.takeBeforePhoto'));
       const uri = await takePhoto();
       if (!uri) return;
 
-      setStep('Saving the photo…');
+      setStep(t('task.savingPhoto'));
       await saveBeforePhoto(task, uri, before);
 
-      setStep('Starting your shift…');
+      setStep(t('task.starting'));
       const opened = await createSession(task, await getPosition());
       setSession(opened);
-      setTask((t) => ({ ...t, status: 'in_progress' }));
+      setTask((prev) => ({ ...prev, status: 'in_progress' }));
       await startShift({ testMode, sessionId: opened.id });
       setTracking(true);
       setShift(await readShiftState());
@@ -87,10 +90,10 @@ export function TaskScreen({ task: initial, finishOnOpen = false, onBack }: Prop
   async function finish() {
     if (!session) return;
     setError(null);
-    setStep('Finishing your shift…');
+    setStep(t('task.finishing'));
     try {
       await finishShift(session.id);
-      setTask((t) => ({ ...t, status: 'done' }));
+      setTask((prev) => ({ ...prev, status: 'done' }));
       setSession(null);
       await refresh();
     } catch (e) {
@@ -101,9 +104,9 @@ export function TaskScreen({ task: initial, finishOnOpen = false, onBack }: Prop
   }
 
   function confirmFinish() {
-    Alert.alert('Finish shift?', 'Location checks will stop and the task will be marked as done.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Finish', onPress: () => void finish() },
+    Alert.alert(t('task.finishTitle'), t('task.finishBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('task.finishConfirm'), onPress: () => void finish() },
     ]);
   }
 
@@ -133,11 +136,11 @@ export function TaskScreen({ task: initial, finishOnOpen = false, onBack }: Prop
   return (
     <ScrollView style={ui.screen} contentContainerStyle={styles.content}>
       <Pressable onPress={onBack} hitSlop={10} disabled={busy}>
-        <Text style={ui.buttonSecondaryText}>‹ Today</Text>
+        <Text style={ui.buttonSecondaryText}>{t('task.back')}</Text>
       </Pressable>
 
       <Text style={ui.h1}>{task.title}</Text>
-      <Text style={[styles.badge, { backgroundColor: status.bg, color: status.fg }]}>{status.label}</Text>
+      <Text style={[styles.badge, { backgroundColor: status.bg, color: status.fg }]}>{t(`status.${task.status}`)}</Text>
 
       {task.site && (
         <View>
@@ -149,10 +152,10 @@ export function TaskScreen({ task: initial, finishOnOpen = false, onBack }: Prop
 
       {task.task_materials.length > 0 && (
         <View style={styles.block}>
-          <Text style={ui.label}>Materials</Text>
+          <Text style={ui.label}>{t('task.materials')}</Text>
           {task.task_materials.map((tm) => (
             <Text key={tm.id} style={ui.muted}>
-              {tm.material?.name}: {tm.planned_qty} {tm.material?.unit}
+              {t('task.material', { name: tm.material?.name, qty: tm.planned_qty, unit: tm.material?.unit })}
             </Text>
           ))}
         </View>
@@ -162,14 +165,14 @@ export function TaskScreen({ task: initial, finishOnOpen = false, onBack }: Prop
 
       {__DEV__ && task.status !== 'done' && !tracking && (
         <View style={styles.row}>
-          <Text style={ui.muted}>Test checks (every 2–4 min)</Text>
+          <Text style={ui.muted}>{t('task.testChecks')}</Text>
           <Switch value={testMode} onValueChange={setTestMode} disabled={busy || switching} />
         </View>
       )}
 
       {task.status === 'assigned' && (
         <Pressable style={[ui.button, busy && ui.disabled]} disabled={busy} onPress={() => void start()}>
-          <Text style={ui.buttonText}>Start shift</Text>
+          <Text style={ui.buttonText}>{t('task.start')}</Text>
         </Pressable>
       )}
 
@@ -182,36 +185,36 @@ export function TaskScreen({ task: initial, finishOnOpen = false, onBack }: Prop
 
       {task.status === 'in_progress' && (
         <View style={styles.shift}>
-          <Text style={ui.label}>You're on shift</Text>
-          {session && (
-            <Text style={ui.muted}>Started at {new Date(session.started_at).toLocaleTimeString()}</Text>
-          )}
+          <Text style={ui.label}>{t('task.onShift')}</Text>
+          {session && <Text style={ui.muted}>{t('task.startedAt', { time: formatTime(session.started_at) })}</Text>}
           {tracking ? (
-            <Text style={ui.muted}>Location checks are running.</Text>
+            <Text style={ui.muted}>{t('task.checksRunning')}</Text>
           ) : (
             session && (
               <>
-                <Text style={ui.error}>Location checks are off. Turn them back on to continue your shift.</Text>
+                <Text style={ui.error}>{t('task.checksOff')}</Text>
                 <Pressable style={[ui.button, switching && ui.disabled]} disabled={switching} onPress={() => void resume()}>
-                  <Text style={ui.buttonText}>{switching ? 'Turning on…' : 'Resume location checks'}</Text>
+                  <Text style={ui.buttonText}>{switching ? t('task.turningOn') : t('task.resume')}</Text>
                 </Pressable>
               </>
             )
           )}
           {session && (
             <Pressable style={[ui.button, styles.finish, busy && ui.disabled]} disabled={busy} onPress={confirmFinish}>
-              <Text style={ui.buttonText}>Finish shift</Text>
+              <Text style={ui.buttonText}>{t('task.finish')}</Text>
             </Pressable>
           )}
           {__DEV__ && tracking && shift && (
             <Text style={ui.muted}>
-              Mode: {shift.testMode ? 'test (2–4 min)' : 'real (60–120 min)'} · next check after{' '}
-              {new Date(shift.nextCheckAt).toLocaleTimeString()}
+              {t('task.devMode', {
+                mode: shift.testMode ? t('task.devModeTest') : t('task.devModeReal'),
+                time: formatTime(shift.nextCheckAt),
+              })}
             </Text>
           )}
           {__DEV__ && tracking && (
             <Pressable style={ui.buttonSecondary} disabled={switching} onPress={() => void stopTracking()}>
-              <Text style={ui.buttonSecondaryText}>{switching ? 'Stopping…' : 'Stop location checks (dev)'}</Text>
+              <Text style={ui.buttonSecondaryText}>{switching ? t('task.devStopping') : t('task.devStop')}</Text>
             </Pressable>
           )}
         </View>

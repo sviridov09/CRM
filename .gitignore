@@ -2,8 +2,9 @@ node_modules/
 dist/
 build/
 .expo/
-android/
-ios/
+# Сгенерированные нативные проекты. android/ внутри mobile/modules — наш код, его коммитим
+/mobile/android/
+/mobile/ios/
 *.apk
 *.aab
 

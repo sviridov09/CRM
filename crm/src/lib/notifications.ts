@@ -1,4 +1,5 @@
 import type { AppNotification, Material } from '../../../shared/types'
+import i18n from '../i18n'
 import { supabase } from './supabase'
 
 export type NotificationRow = AppNotification & {
@@ -52,7 +53,7 @@ export async function markAllRead() {
 function clock(iso: string): string {
   const d = new Date(iso)
   const today = d.toDateString() === new Date().toDateString()
-  return d.toLocaleString('en-US', {
+  return d.toLocaleString(i18n.language, {
     ...(today ? {} : { month: 'short', day: 'numeric' }),
     hour: 'numeric',
     minute: '2-digit',
@@ -60,30 +61,32 @@ function clock(iso: string): string {
 }
 
 export function describeNotification(n: NotificationRow, materials: NotificationList['materials']): string {
-  const worker = n.worker?.full_name ?? 'A worker'
-  const site = n.task?.site?.name ?? 'the site'
+  const t = i18n.getFixedT(i18n.language)
+  const worker = n.worker?.full_name ?? t('notification.someWorker')
+  const site = n.task?.site?.name ?? t('notification.theSite')
   const at = clock(String(n.payload.at ?? n.created_at))
+  const p = n.payload
 
   switch (n.type) {
     case 'left_site': {
-      const back = n.payload.return_in_minutes
-      return `${worker} left ${site} at ${at}${back ? ` · back in ${back} min` : ''}`
+      const back = p.return_in_minutes
+      return t('notification.left_site', { worker, site, at }) + (back ? t('notification.backIn', { minutes: back }) : '')
     }
     case 'absence':
-      return `${worker} didn't answer a location check at ${site} (${at})`
+      return t('notification.absence', { worker, site, at })
     case 'overuse': {
-      const m = materials[String(n.payload.material_id)]
-      const what = m ? `${n.payload.actual} ${m.unit} of ${m.name}` : `${n.payload.actual}`
-      return `${worker} used ${what}, ${n.payload.planned} allocated · ${n.task?.title ?? 'task'}`
+      const m = materials[String(p.material_id)]
+      const what = m ? t('notification.overuseWhat', { actual: p.actual, unit: m.unit, name: m.name }) : String(p.actual)
+      return t('notification.overuse', { worker, what, planned: p.planned, task: n.task?.title ?? t('notification.task') })
     }
     case 'material_request':
-      return `${worker} requested a new material: ${n.payload.name} (${n.payload.unit})`
+      return t('notification.material_request', { worker, name: p.name, unit: p.unit })
     case 'location_off':
-      return `${worker} turned off location at ${at} · ${site}`
+      return t('notification.location_off', { worker, at, site })
     case 'location_on':
-      return `${worker} turned location back on (${at})`
+      return t('notification.location_on', { worker, at })
     case 'no_signal':
-      return `No signal from ${worker} since ${at} · ${site}`
+      return t('notification.no_signal', { worker, at, site })
   }
 }
 

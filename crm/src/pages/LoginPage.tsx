@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 
 export function LoginPage() {
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -13,7 +15,7 @@ export function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
     // При успехе AuthProvider сам переключит экран
     if (error) {
-      setError(error.message === 'Invalid login credentials' ? 'Wrong email or password' : error.message)
+      setError(error.message === 'Invalid login credentials' ? t('login.wrongCredentials') : error.message)
       setBusy(false)
     }
   }
@@ -27,14 +29,14 @@ export function LoginPage() {
           void submit()
         }}
       >
-        <h1>Field CRM</h1>
-        <p className="muted">Sign in to manage sites, crews and daily tasks.</p>
+        <h1>{t('login.title')}</h1>
+        <p className="muted">{t('login.subtitle')}</p>
         <label>
-          Email
+          {t('login.email')}
           <input type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} />
         </label>
         <label>
-          Password
+          {t('login.password')}
           <input
             type="password"
             autoComplete="current-password"
@@ -45,7 +47,7 @@ export function LoginPage() {
         </label>
         {error && <p className="error">{error}</p>}
         <button className="btn primary" disabled={busy}>
-          {busy ? 'Signing in…' : 'Sign in'}
+          {busy ? t('login.signingIn') : t('login.signIn')}
         </button>
       </form>
     </div>

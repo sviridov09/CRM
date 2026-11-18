@@ -4,6 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { distanceM } from '../../../shared/types';
 import { readShiftState, stopShift } from '../geo/shiftTracking';
+import i18n from '../i18n';
 import { supabase } from './supabase';
 import type { TaskRow } from './tasks';
 
@@ -19,7 +20,7 @@ export function distanceToSite(task: TaskRow, pos: Location.LocationObject): num
 
 export function offSiteMessage(task: TaskRow, pos: Location.LocationObject): string {
   const meters = Math.round(distanceToSite(task, pos));
-  return `You're ${meters} m from the site. Move within ${task.site!.radius_m} m and try again.`;
+  return i18n.t('shift.offSite', { meters, radius: task.site!.radius_m });
 }
 
 const PHOTO_MAX_SIDE = 1600;
@@ -43,7 +44,7 @@ async function compressPhoto(asset: ImagePicker.ImagePickerAsset): Promise<strin
 /** Открывает камеру и возвращает сжатое фото. null — рабочий передумал и вышел из камеры. */
 export async function takePhoto(): Promise<string | null> {
   const perm = await ImagePicker.requestCameraPermissionsAsync();
-  if (!perm.granted) throw new Error('Allow camera access in Settings to take the photo.');
+  if (!perm.granted) throw new Error(i18n.t('shift.cameraDenied'));
   // Сжимаем сами одним проходом, поэтому с камеры берём без потерь
   const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 1 });
   return result.canceled ? null : compressPhoto(result.assets[0]);

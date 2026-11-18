@@ -1,5 +1,7 @@
 import { registerRootComponent } from 'expo';
 
+// Переводы — первыми: тексты нужны и фоновым задачам
+import './src/i18n';
 // Фоновая задача геолокации — до регистрации экрана, на верхнем уровне бандла
 import './src/geo/shiftTracking';
 import App from './App';

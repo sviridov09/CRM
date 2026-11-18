@@ -1,5 +1,6 @@
 import * as Location from 'expo-location';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, Linking, Platform, Pressable, ScrollView, Text } from 'react-native';
 import type { LocationProblem } from '../geo/shiftHealth';
 import { finishShift } from '../lib/shift';
@@ -8,6 +9,7 @@ import { ui } from '../lib/ui';
 type Props = { problem: Exclude<LocationProblem, null>; sessionId: string; onChanged: () => void };
 
 export function LocationOffScreen({ problem, sessionId, onChanged }: Props) {
+  const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -28,10 +30,10 @@ export function LocationOffScreen({ problem, sessionId, onChanged }: Props) {
   }
 
   function finish() {
-    Alert.alert('Finish shift?', 'The task will be marked as done.', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('task.finishTitle'), t('locationOff.finishBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Finish',
+        text: t('task.finishConfirm'),
         onPress: async () => {
           setBusy(true);
           try {
@@ -46,22 +48,21 @@ export function LocationOffScreen({ problem, sessionId, onChanged }: Props) {
     ]);
   }
 
+  const services = problem === 'services';
+
   return (
     <ScrollView style={ui.screen} contentContainerStyle={ui.centered}>
-      <Text style={ui.h1}>{problem === 'services' ? 'Location is off' : 'Location permission is off'}</Text>
+      <Text style={ui.h1}>{services ? t('locationOff.servicesTitle') : t('locationOff.permissionTitle')}</Text>
       <Text style={ui.text}>
-        You're on shift, and location checks can't run.{' '}
-        {problem === 'services'
-          ? 'Turn location back on to continue.'
-          : 'Allow location "All the time" for Field CRM in Settings.'}{' '}
-        Your foreman has been notified.
+        {t('locationOff.intro')} {services ? t('locationOff.servicesBody') : t('locationOff.permissionBody')}{' '}
+        {t('locationOff.foremanWarning')}
       </Text>
       {error && <Text style={ui.error}>{error}</Text>}
       <Pressable style={[ui.button, busy && ui.disabled]} disabled={busy} onPress={() => void turnOn()}>
-        <Text style={ui.buttonText}>{problem === 'services' ? 'Turn on location' : 'Open Settings'}</Text>
+        <Text style={ui.buttonText}>{services ? t('locationOff.turnOn') : t('common.openSettings')}</Text>
       </Pressable>
       <Pressable style={ui.buttonSecondary} disabled={busy} onPress={finish}>
-        <Text style={ui.buttonSecondaryText}>{busy ? 'Finishing…' : 'Finish shift instead'}</Text>
+        <Text style={ui.buttonSecondaryText}>{busy ? t('locationOff.finishing') : t('locationOff.finishInstead')}</Text>
       </Pressable>
     </ScrollView>
   );

@@ -10,10 +10,11 @@ export type TaskRow = Task & {
 const TASK_SELECT =
   '*, site:site_id(name, address, lat, lng, radius_m), task_materials(*, material:material_id(name, unit))';
 
-export const TASK_STATUS: Record<TaskStatus, { label: string; bg: string; fg: string }> = {
-  assigned: { label: 'To do', bg: '#e8ebf0', fg: colors.muted },
-  in_progress: { label: 'In progress', bg: '#fff6e0', fg: '#8a5a00' },
-  done: { label: 'Done', bg: '#e5f6ea', fg: '#1d7a3a' },
+/** Цвета метки статуса; подпись — t(`status.<статус>`). */
+export const TASK_STATUS: Record<TaskStatus, { bg: string; fg: string }> = {
+  assigned: { bg: '#e8ebf0', fg: colors.muted },
+  in_progress: { bg: '#fff6e0', fg: '#8a5a00' },
+  done: { bg: '#e5f6ea', fg: '#1d7a3a' },
 };
 
 /** Сегодня по часам телефона, YYYY-MM-DD. */
@@ -40,10 +41,4 @@ export async function loadTodayTasks(workerId: string): Promise<TaskRow[]> {
   const rows = data as TaskRow[];
   const started = (t: TaskRow) => (t.status === 'in_progress' ? 0 : 1);
   return rows.sort((a, b) => started(a) - started(b)); // sort устойчивый: порядок из базы сохранится
-}
-
-/** "2026-11-04" → "Nov 4". */
-export function shortDate(iso: string): string {
-  const [y, m, d] = iso.split('-').map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }

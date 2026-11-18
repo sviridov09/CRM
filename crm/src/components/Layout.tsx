@@ -1,16 +1,18 @@
+import { useTranslation } from 'react-i18next'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth, useProfile } from '../lib/auth-context'
 import { NotificationBell } from './NotificationBell'
 import { ThemeToggle } from './ThemeToggle'
 
 const links = [
-  { to: '/', label: 'Tasks' },
-  { to: '/sites', label: 'Sites' },
-  { to: '/workers', label: 'Workers' },
-  { to: '/materials', label: 'Materials' },
-]
+  { to: '/', label: 'nav.tasks' },
+  { to: '/sites', label: 'nav.sites' },
+  { to: '/workers', label: 'nav.workers' },
+  { to: '/materials', label: 'nav.materials' },
+] as const
 
 export function Layout() {
+  const { t } = useTranslation()
   const { signOut } = useAuth()
   const profile = useProfile()
 
@@ -21,7 +23,7 @@ export function Layout() {
         <nav className="nav">
           {links.map((l) => (
             <NavLink key={l.to} to={l.to} end={l.to === '/'}>
-              {l.label}
+              {t(l.label)}
             </NavLink>
           ))}
         </nav>
@@ -30,7 +32,7 @@ export function Layout() {
           <NotificationBell />
           <ThemeToggle />
           <button type="button" className="btn link" onClick={() => void signOut()}>
-            Sign out
+            {t('nav.signOut')}
           </button>
         </div>
       </header>

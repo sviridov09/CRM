@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import { ShiftGuard } from '../../modules/shift-guard';
+import i18n from '../i18n';
 import { supabase } from '../lib/supabase';
 
 const OFF_KEY = 'location-off-reported';
@@ -30,15 +31,15 @@ export async function locationProblem(): Promise<LocationProblem> {
 }
 
 async function warnWorker(problem: Exclude<LocationProblem, null>) {
-  const title = problem === 'services' ? 'Location is off' : 'Location permission is off';
-  const body = 'Turn it back on to stay on shift. Your foreman has been notified.';
+  const title = i18n.t(problem === 'services' ? 'locationOff.servicesTitle' : 'locationOff.permissionTitle');
+  const body = i18n.t('locationOff.notificationBody');
   // То же уведомление, что показывает нативный приёмник: не дублируем
   if (ShiftGuard) {
     ShiftGuard.showLocationOff(title, body);
     return;
   }
   await Notifications.setNotificationChannelAsync(CHANNEL, {
-    name: 'Location is off',
+    name: i18n.t('locationOff.channel'),
     importance: Notifications.AndroidImportance.HIGH,
   });
   await Notifications.scheduleNotificationAsync({

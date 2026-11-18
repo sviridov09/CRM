@@ -8,7 +8,8 @@ type Events = {
 
 declare class ShiftGuardModule extends NativeModule<Events> {
   isLocationEnabled(): boolean;
-  startWatching(): void;
+  /** title/body — текст предупреждения на языке приложения (нативный код не знает переводов). */
+  startWatching(title: string, body: string): void;
   stopWatching(): void;
   showLocationOff(title: string, body: string): void;
   hideLocationOff(): void;

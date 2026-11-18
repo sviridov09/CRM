@@ -1,0 +1,41 @@
+{
+  "nav": {
+    "tasks": "Tasks",
+    "sites": "Sites",
+    "workers": "Workers",
+    "materials": "Materials",
+    "signOut": "Sign out",
+    "switchTheme": "Switch to {{theme}} theme",
+    "themeLight": "light",
+    "themeDark": "dark"
+  },
+  "login": {
+    "title": "Field CRM",
+    "subtitle": "Sign in to manage sites, crews and daily tasks.",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "wrongCredentials": "Wrong email or password"
+  },
+  "bell": {
+    "title": "Notifications",
+    "unread": "Notifications, {{count}} unread",
+    "markAllRead": "Mark all read",
+    "empty": "No notifications yet."
+  },
+  "notification": {
+    "someWorker": "A worker",
+    "theSite": "the site",
+    "task": "task",
+    "left_site": "{{worker}} left {{site}} at {{at}}",
+    "backIn": " · back in {{minutes}} min",
+    "absence": "{{worker}} didn't answer a location check at {{site}} ({{at}})",
+    "overuse": "{{worker}} used {{what}}, {{planned}} allocated · {{task}}",
+    "overuseWhat": "{{actual}} {{unit}} of {{name}}",
+    "material_request": "{{worker}} requested a new material: {{name}} ({{unit}})",
+    "location_off": "{{worker}} turned off location at {{at}} · {{site}}",
+    "location_on": "{{worker}} turned location back on ({{at}})",
+    "no_signal": "No signal from {{worker}} since {{at}} · {{site}}"
+  }
+}

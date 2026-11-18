@@ -38,7 +38,8 @@
           "cameraPermission": "Field CRM uses the camera for before and after photos of your work."
         }
       ],
-      "expo-background-task"
+      "expo-background-task",
+      "expo-localization"
     ]
   }
 }

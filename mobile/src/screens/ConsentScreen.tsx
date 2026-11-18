@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AppState, Linking, Pressable, ScrollView, Text } from 'react-native';
 import { ui } from '../lib/ui';
 
@@ -26,37 +27,11 @@ export async function isSetupComplete(): Promise<boolean> {
   return consent === 'yes' && perms.foreground && perms.background && perms.notifications;
 }
 
+// Тексты шагов — в en.json, раздел consent.<шаг>
 type Step = 'intro' | 'foreground' | 'background' | 'notifications';
 
-const STEPS: Record<Step, { title: string; body: string; button: string }> = {
-  intro: {
-    title: 'Location during your shift',
-    body:
-      'Field CRM records your location only between Start and Finish of a task, ' +
-      'to confirm you are on site. A few random checks happen during the shift. ' +
-      'Your location is never collected outside a shift.',
-    button: 'I agree',
-  },
-  foreground: {
-    title: 'Allow location',
-    body: 'Needed to confirm you are on site when you start a task. Choose "While using the app".',
-    button: 'Continue',
-  },
-  background: {
-    title: 'Allow location all the time',
-    body:
-      'Shift checks run while your phone is locked. On the next screen choose "Allow all the time". ' +
-      'Checks still happen only during a shift, and you will see a notification while it runs.',
-    button: 'Open permission screen',
-  },
-  notifications: {
-    title: 'Allow notifications',
-    body: 'We need to tell you if a check shows you have left the site.',
-    button: 'Continue',
-  },
-};
-
 export function ConsentScreen({ onDone }: { onDone: () => void }) {
+  const { t } = useTranslation();
   const [agreed, setAgreed] = useState<boolean | null>(null);
   const [perms, setPerms] = useState<Perms | null>(null);
   const [deniedStep, setDeniedStep] = useState<Step | null>(null);
@@ -110,21 +85,17 @@ export function ConsentScreen({ onDone }: { onDone: () => void }) {
     await refresh();
   }
 
-  const { title, body, button } = STEPS[step];
-
   return (
     <ScrollView style={ui.screen} contentContainerStyle={ui.centered}>
-      <Text style={ui.h1}>{title}</Text>
-      <Text style={ui.text}>{body}</Text>
-      {deniedStep === step && (
-        <Text style={ui.error}>This permission is required to work shifts. Turn it on in Settings.</Text>
-      )}
+      <Text style={ui.h1}>{t(`consent.${step}.title`)}</Text>
+      <Text style={ui.text}>{t(`consent.${step}.body`)}</Text>
+      {deniedStep === step && <Text style={ui.error}>{t('consent.denied')}</Text>}
       <Pressable style={ui.button} onPress={() => void next()}>
-        <Text style={ui.buttonText}>{button}</Text>
+        <Text style={ui.buttonText}>{t(`consent.${step}.button`)}</Text>
       </Pressable>
       {deniedStep === step && (
         <Pressable style={ui.buttonSecondary} onPress={() => void Linking.openSettings()}>
-          <Text style={ui.buttonSecondaryText}>Open Settings</Text>
+          <Text style={ui.buttonSecondaryText}>{t('common.openSettings')}</Text>
         </Pressable>
       )}
     </ScrollView>

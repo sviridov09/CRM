@@ -6,6 +6,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
+import i18n from '../i18n';
 import { supabase } from '../lib/supabase';
 
 const AWAITING_KEY = 'left-site-awaiting';
@@ -42,21 +43,21 @@ export async function promptLeftSite(pingId: string) {
   if (await readAwaiting()) return;
 
   await Notifications.setNotificationChannelAsync(CHANNEL, {
-    name: 'Left the site',
+    name: i18n.t('leftSite.channel'),
     importance: Notifications.AndroidImportance.HIGH,
   });
   await Notifications.setNotificationCategoryAsync(
     CATEGORY,
     RETURN_OPTIONS.map((minutes) => ({
       identifier: `back_${minutes}`,
-      buttonTitle: `Back in ${minutes} min`,
+      buttonTitle: i18n.t('leftSite.backIn', { minutes }),
       options: { opensAppToForeground: true },
     })),
   );
   const notificationId = await Notifications.scheduleNotificationAsync({
     content: {
-      title: 'You left the site',
-      body: 'When will you be back? If you don’t answer in 10 minutes, your foreman will be told.',
+      title: i18n.t('leftSite.title'),
+      body: i18n.t('leftSite.notificationBody'),
       categoryIdentifier: CATEGORY,
       data: { pingId },
     },

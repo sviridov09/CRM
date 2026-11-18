@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -15,6 +16,7 @@ import { supabase } from '../lib/supabase';
 import { colors, ui } from '../lib/ui';
 
 export function LoginScreen() {
+  const { t } = useTranslation();
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -31,7 +33,7 @@ export function LoginScreen() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     // При успехе useAuth сам переключит экран
     if (error) {
-      setError(error.message === 'Invalid login credentials' ? 'Wrong login or password.' : error.message);
+      setError(error.message === 'Invalid login credentials' ? t('login.wrongCredentials') : error.message);
       setBusy(false);
     }
   }
@@ -42,11 +44,11 @@ export function LoginScreen() {
     // В режиме edge-to-edge Android сам не сжимает окно под клавиатуру
     <KeyboardAvoidingView style={ui.screen} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={ui.centered} keyboardShouldPersistTaps="handled">
-        <Text style={ui.h1}>Field CRM</Text>
-        <Text style={ui.muted}>Sign in with the login and password from your foreman.</Text>
+        <Text style={ui.h1}>{t('login.title')}</Text>
+        <Text style={ui.muted}>{t('login.subtitle')}</Text>
 
         <View style={styles.field}>
-          <Text style={ui.label}>Login</Text>
+          <Text style={ui.label}>{t('login.login')}</Text>
           <TextInput
             style={ui.input}
             value={login}
@@ -60,7 +62,7 @@ export function LoginScreen() {
           />
         </View>
         <View style={styles.field}>
-          <Text style={ui.label}>Password</Text>
+          <Text style={ui.label}>{t('login.password')}</Text>
           <View>
             <TextInput
               ref={passwordRef}
@@ -80,7 +82,7 @@ export function LoginScreen() {
               style={styles.toggle}
               onPress={() => setShowPassword((v) => !v)}
               accessibilityRole="button"
-              accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+              accessibilityLabel={showPassword ? t('login.hidePassword') : t('login.showPassword')}
             >
               <EyeIcon crossed={showPassword} color={colors.muted} />
             </Pressable>
@@ -94,7 +96,7 @@ export function LoginScreen() {
           disabled={!canSubmit}
           onPress={() => void signIn()}
         >
-          <Text style={ui.buttonText}>{busy ? 'Signing in…' : 'Sign in'}</Text>
+          <Text style={ui.buttonText}>{busy ? t('login.signingIn') : t('login.signIn')}</Text>
         </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>

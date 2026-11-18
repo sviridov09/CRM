@@ -1,0 +1,119 @@
+{
+  "common": {
+    "signOut": "Sign out",
+    "tryAgain": "Try again",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "openSettings": "Open Settings",
+    "loading": "Loading…",
+    "language": "Language"
+  },
+  "account": {
+    "foremanTitle": "Use the web CRM",
+    "foremanBody": "This app is for workers. Foremen manage work in the web CRM.",
+    "disabledTitle": "Account disabled",
+    "disabledBody": "Ask your foreman to turn your account back on.",
+    "loadErrorTitle": "Can't load your account"
+  },
+  "login": {
+    "title": "Field CRM",
+    "subtitle": "Sign in with the login and password from your foreman.",
+    "login": "Login",
+    "password": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "wrongCredentials": "Wrong login or password."
+  },
+  "consent": {
+    "intro": {
+      "title": "Location during your shift",
+      "body": "Field CRM records your location only between Start and Finish of a task, to confirm you are on site. A few random checks happen during the shift. Your location is never collected outside a shift.",
+      "button": "I agree"
+    },
+    "foreground": {
+      "title": "Allow location",
+      "body": "Needed to confirm you are on site when you start a task. Choose \"While using the app\".",
+      "button": "Continue"
+    },
+    "background": {
+      "title": "Allow location all the time",
+      "body": "Shift checks run while your phone is locked. On the next screen choose \"Allow all the time\". Checks still happen only during a shift, and you will see a notification while it runs.",
+      "button": "Open permission screen"
+    },
+    "notifications": {
+      "title": "Allow notifications",
+      "body": "We need to tell you if a check shows you have left the site.",
+      "button": "Continue"
+    },
+    "denied": "This permission is required to work shifts. Turn it on in Settings."
+  },
+  "status": {
+    "assigned": "To do",
+    "in_progress": "In progress",
+    "done": "Done"
+  },
+  "today": {
+    "title": "Today",
+    "empty": "No tasks for today.",
+    "startedOn": "Started {{date}}",
+    "materials": "Materials",
+    "locationTest": "Location test (dev)"
+  },
+  "task": {
+    "back": "‹ Today",
+    "materials": "Materials",
+    "material": "{{name}}: {{qty}} {{unit}}",
+    "testChecks": "Test checks (every 2–4 min)",
+    "start": "Start shift",
+    "anotherShift": "Another shift is already running. Finish it first.",
+    "gettingLocation": "Getting your location…",
+    "takeBeforePhoto": "Take a photo of the site before you start",
+    "savingPhoto": "Saving the photo…",
+    "starting": "Starting your shift…",
+    "onShift": "You're on shift",
+    "startedAt": "Started at {{time}}",
+    "checksRunning": "Location checks are running.",
+    "checksOff": "Location checks are off. Turn them back on to continue your shift.",
+    "resume": "Resume location checks",
+    "turningOn": "Turning on…",
+    "finish": "Finish shift",
+    "finishing": "Finishing your shift…",
+    "finishTitle": "Finish shift?",
+    "finishBody": "Location checks will stop and the task will be marked as done.",
+    "finishConfirm": "Finish",
+    "devMode": "Mode: {{mode}} · next check after {{time}}",
+    "devModeTest": "test (2–4 min)",
+    "devModeReal": "real (60–120 min)",
+    "devStop": "Stop location checks (dev)",
+    "devStopping": "Stopping…"
+  },
+  "shift": {
+    "offSite": "You're {{meters}} m from the site. Move within {{radius}} m and try again.",
+    "cameraDenied": "Allow camera access in Settings to take the photo.",
+    "serviceTitle": "You're on shift",
+    "serviceBody": "Your location is checked from time to time until you finish work."
+  },
+  "leftSite": {
+    "title": "You left the site",
+    "body": "A location check shows you're away from the site. When will you be back? Your foreman will see your answer.",
+    "backIn": "Back in {{minutes}} min",
+    "notificationBody": "When will you be back? If you don't answer in 10 minutes, your foreman will be told.",
+    "channel": "Left the site"
+  },
+  "locationOff": {
+    "servicesTitle": "Location is off",
+    "permissionTitle": "Location permission is off",
+    "intro": "You're on shift, and location checks can't run.",
+    "servicesBody": "Turn location back on to continue.",
+    "permissionBody": "Allow location \"All the time\" for Field CRM in Settings.",
+    "foremanWarning": "If it stays off for more than 2 minutes, your foreman will be notified.",
+    "turnOn": "Turn on location",
+    "finishInstead": "Finish shift instead",
+    "finishing": "Finishing…",
+    "finishBody": "The task will be marked as done.",
+    "notificationBody": "Turn it back on to stay on shift, or your foreman will be notified.",
+    "channel": "Location is off"
+  }
+}
