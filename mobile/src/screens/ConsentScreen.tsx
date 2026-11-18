@@ -6,7 +6,7 @@ import * as Notifications from 'expo-notifications';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AppState, Linking, Pressable, ScrollView, Text } from 'react-native';
-import { ui } from '../lib/ui';
+import { useTheme } from '../lib/theme';
 
 const CONSENT_KEY = 'location-consent-v1';
 
@@ -32,6 +32,7 @@ type Step = 'intro' | 'foreground' | 'background' | 'notifications';
 
 export function ConsentScreen({ onDone }: { onDone: () => void }) {
   const { t } = useTranslation();
+  const { ui } = useTheme();
   const [agreed, setAgreed] = useState<boolean | null>(null);
   const [perms, setPerms] = useState<Perms | null>(null);
   const [deniedStep, setDeniedStep] = useState<Step | null>(null);

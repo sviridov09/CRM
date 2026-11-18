@@ -13,10 +13,11 @@ import {
 import { workerEmail } from '../../../shared/types';
 import { EyeIcon } from '../components/EyeIcon';
 import { supabase } from '../lib/supabase';
-import { colors, ui } from '../lib/ui';
+import { useTheme } from '../lib/theme';
 
 export function LoginScreen() {
   const { t } = useTranslation();
+  const { ui, colors, scheme } = useTheme();
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -57,6 +58,7 @@ export function LoginScreen() {
             autoCorrect={false}
             autoComplete="username"
             returnKeyType="next"
+            keyboardAppearance={scheme}
             submitBehavior="submit"
             onSubmitEditing={() => passwordRef.current?.focus()}
           />
@@ -74,6 +76,7 @@ export function LoginScreen() {
               autoCorrect={false}
               autoComplete="current-password"
               returnKeyType="go"
+              keyboardAppearance={scheme}
               onSubmitEditing={() => {
                 if (canSubmit) void signIn();
               }}

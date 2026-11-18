@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { supabase } from './src/lib/supabase';
 import type { TaskRow } from './src/lib/tasks';
-import { ui } from './src/lib/ui';
+import { ThemeProvider, useTheme } from './src/lib/theme';
 import { useAuth } from './src/lib/useAuth';
 import { useLeftSite } from './src/lib/useLeftSite';
 import { useShiftHealth } from './src/lib/useShiftHealth';
@@ -18,11 +18,16 @@ import { TasksScreen } from './src/screens/TasksScreen';
 
 export default function App() {
   return (
-    <>
+    <ThemeProvider>
       <Root />
-      <StatusBar style="dark" />
-    </>
+      <ThemedStatusBar />
+    </ThemeProvider>
   );
+}
+
+function ThemedStatusBar() {
+  const { scheme } = useTheme();
+  return <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />;
 }
 
 function Root() {
@@ -83,15 +88,17 @@ function Root() {
 }
 
 function Loading() {
+  const { ui, colors } = useTheme();
   return (
     <View style={[ui.screen, { justifyContent: 'center' }]}>
-      <ActivityIndicator size="large" />
+      <ActivityIndicator size="large" color={colors.accent} />
     </View>
   );
 }
 
 function Notice(props: { title: string; body: string; onRetry?: () => void }) {
   const { t } = useTranslation();
+  const { ui } = useTheme();
   return (
     <ScrollView style={ui.screen} contentContainerStyle={ui.centered}>
       <Text style={ui.h1}>{props.title}</Text>

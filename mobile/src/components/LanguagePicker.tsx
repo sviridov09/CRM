@@ -1,11 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LANGUAGES, setLanguage, type Language } from '../i18n';
-import { colors, ui } from '../lib/ui';
+import { useTheme, useThemedStyles, type Palette } from '../lib/theme';
 
 /** Выбор языка. Пока переведён только английский — не показываем. */
 export function LanguagePicker() {
   const { t, i18n } = useTranslation();
+  const { ui } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const languages = Object.entries(LANGUAGES) as [Language, string][];
   if (languages.length < 2) return null;
 
@@ -27,10 +29,11 @@ export function LanguagePicker() {
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: { gap: 8, marginTop: 8 },
-  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  option: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: colors.border },
-  active: { borderColor: colors.primary, backgroundColor: '#e8effd' },
-  activeText: { color: colors.primary, fontWeight: '600' },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    wrap: { gap: 8, marginTop: 8 },
+    row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    option: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: c.border },
+    active: { borderColor: c.accent, backgroundColor: c.selectedBg },
+    activeText: { color: c.accent, fontWeight: '600' },
+  });

@@ -14,8 +14,8 @@ import {
   takePhoto,
   type OpenSession,
 } from '../lib/shift';
-import { TASK_STATUS, type TaskRow } from '../lib/tasks';
-import { colors, ui } from '../lib/ui';
+import type { TaskRow } from '../lib/tasks';
+import { useTheme, useThemedStyles, type Palette } from '../lib/theme';
 
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
@@ -23,6 +23,8 @@ type Props = { task: TaskRow; finishOnOpen?: boolean; onBack: () => void };
 
 export function TaskScreen({ task: initial, finishOnOpen = false, onBack }: Props) {
   const { t } = useTranslation();
+  const { ui, colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const [task, setTask] = useState(initial);
   const [session, setSession] = useState<OpenSession | null>(null);
   const [tracking, setTracking] = useState(false);
@@ -130,7 +132,7 @@ export function TaskScreen({ task: initial, finishOnOpen = false, onBack }: Prop
     }
   }
 
-  const status = TASK_STATUS[task.status];
+  const status = colors.status[task.status];
   const busy = step !== null;
 
   return (
@@ -140,7 +142,7 @@ export function TaskScreen({ task: initial, finishOnOpen = false, onBack }: Prop
       </Pressable>
 
       <Text style={ui.h1}>{task.title}</Text>
-      <Text style={[styles.badge, { backgroundColor: status.bg, color: status.fg }]}>{t(`status.${task.status}`)}</Text>
+      <Text style={[ui.badge, { backgroundColor: status.bg, color: status.fg }]}>{t(`status.${task.status}`)}</Text>
 
       {task.site && (
         <View>
@@ -178,7 +180,7 @@ export function TaskScreen({ task: initial, finishOnOpen = false, onBack }: Prop
 
       {step && (
         <View style={styles.row}>
-          <ActivityIndicator />
+          <ActivityIndicator color={colors.accent} />
           <Text style={[ui.muted, { flex: 1 }]}>{step}</Text>
         </View>
       )}
@@ -200,7 +202,7 @@ export function TaskScreen({ task: initial, finishOnOpen = false, onBack }: Prop
             )
           )}
           {session && (
-            <Pressable style={[ui.button, styles.finish, busy && ui.disabled]} disabled={busy} onPress={confirmFinish}>
+            <Pressable style={[ui.button, ui.buttonSuccess, busy && ui.disabled]} disabled={busy} onPress={confirmFinish}>
               <Text style={ui.buttonText}>{t('task.finish')}</Text>
             </Pressable>
           )}
@@ -223,26 +225,10 @@ export function TaskScreen({ task: initial, finishOnOpen = false, onBack }: Prop
   );
 }
 
-const styles = StyleSheet.create({
-  content: { padding: 20, paddingTop: 56, paddingBottom: 40, gap: 14 },
-  block: { gap: 2 },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  badge: {
-    alignSelf: 'flex-start',
-    fontSize: 13,
-    fontWeight: '600',
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 999,
-    overflow: 'hidden',
-  },
-  finish: { backgroundColor: '#1d7a3a' },
-  shift: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    padding: 16,
-    gap: 10,
-  },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    content: { padding: 20, paddingTop: 56, paddingBottom: 40, gap: 14 },
+    block: { gap: 2 },
+    row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+    shift: { backgroundColor: c.surface, borderWidth: 1, borderColor: c.border, borderRadius: 12, padding: 16, gap: 10 },
+  });

@@ -3,10 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import type { Profile } from '../../../shared/types';
 import { LanguagePicker } from '../components/LanguagePicker';
+import { ThemePicker } from '../components/ThemePicker';
 import { formatShortDate } from '../i18n';
 import { supabase } from '../lib/supabase';
-import { loadTodayTasks, TASK_STATUS, todayISO, type TaskRow } from '../lib/tasks';
-import { colors, ui } from '../lib/ui';
+import { loadTodayTasks, todayISO, type TaskRow } from '../lib/tasks';
+import { useTheme, useThemedStyles, type Palette } from '../lib/theme';
 
 type Props = {
   profile: Profile;
@@ -16,6 +17,8 @@ type Props = {
 
 export function TasksScreen({ profile, onOpenTask, onOpenGeoTest }: Props) {
   const { t } = useTranslation();
+  const { ui, colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const [tasks, setTasks] = useState<TaskRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -57,7 +60,15 @@ export function TasksScreen({ profile, onOpenTask, onOpenGeoTest }: Props) {
         data={tasks ?? []}
         keyExtractor={(task) => task.id}
         contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => void refresh()}
+            colors={[colors.accent]}
+            tintColor={colors.accent}
+            progressBackgroundColor={colors.surface}
+          />
+        }
         renderItem={({ item }) => (
           <TaskCard
             task={item}
@@ -70,6 +81,7 @@ export function TasksScreen({ profile, onOpenTask, onOpenGeoTest }: Props) {
         }
         ListFooterComponent={
           <>
+            <ThemePicker />
             <LanguagePicker />
             {__DEV__ && (
               <Pressable style={ui.buttonSecondary} onPress={onOpenGeoTest}>
@@ -85,12 +97,14 @@ export function TasksScreen({ profile, onOpenTask, onOpenGeoTest }: Props) {
 
 function TaskCard({ task, onPress, onFinish }: { task: TaskRow; onPress: () => void; onFinish: () => void }) {
   const { t } = useTranslation();
-  const status = TASK_STATUS[task.status];
+  const { ui, colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
+  const status = colors.status[task.status];
   return (
     <Pressable style={styles.card} onPress={onPress}>
       <View style={styles.cardHead}>
         <Text style={styles.title}>{task.title}</Text>
-        <Text style={[styles.badge, { backgroundColor: status.bg, color: status.fg }]}>
+        <Text style={[ui.badge, { backgroundColor: status.bg, color: status.fg }]}>
           {t(`status.${task.status}`)}
         </Text>
       </View>
@@ -114,7 +128,7 @@ function TaskCard({ task, onPress, onFinish }: { task: TaskRow; onPress: () => v
         </View>
       )}
       {task.status === 'in_progress' && (
-        <Pressable style={[ui.button, styles.finish]} onPress={onFinish}>
+        <Pressable style={[ui.button, ui.buttonSuccess, styles.finish]} onPress={onFinish}>
           <Text style={ui.buttonText}>{t('task.finish')}</Text>
         </Pressable>
       )}
@@ -122,22 +136,15 @@ function TaskCard({ task, onPress, onFinish }: { task: TaskRow; onPress: () => v
   );
 }
 
-const styles = StyleSheet.create({
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 12 },
-  errorBox: { marginHorizontal: 20, marginBottom: 8 },
-  list: { paddingHorizontal: 20, paddingBottom: 40, gap: 12 },
-  empty: { textAlign: 'center', paddingVertical: 48 },
-  card: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    padding: 16,
-    gap: 8,
-  },
-  cardHead: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  title: { flex: 1, fontSize: 17, fontWeight: '600', color: colors.text },
-  badge: { fontSize: 13, fontWeight: '600', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999, overflow: 'hidden' },
-  materials: { gap: 2, marginTop: 4 },
-  finish: { backgroundColor: '#1d7a3a', marginTop: 4 },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 12 },
+    errorBox: { marginHorizontal: 20, marginBottom: 8 },
+    list: { paddingHorizontal: 20, paddingBottom: 40, gap: 12 },
+    empty: { textAlign: 'center', paddingVertical: 48 },
+    card: { backgroundColor: c.surface, borderWidth: 1, borderColor: c.border, borderRadius: 12, padding: 16, gap: 8 },
+    cardHead: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+    title: { flex: 1, fontSize: 17, fontWeight: '600', color: c.text },
+    materials: { gap: 2, marginTop: 4 },
+    finish: { marginTop: 4 },
+  });

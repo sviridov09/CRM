@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text } from 'react-native';
 import { RETURN_OPTIONS, type Awaiting } from '../geo/leftSite';
-import { ui } from '../lib/ui';
+import { useTheme } from '../lib/theme';
 
 type Props = { awaiting: Awaiting; onAnswer: (pingId: string, minutes: number) => Promise<void> };
 
 export function LeftSiteScreen({ awaiting, onAnswer }: Props) {
   const { t } = useTranslation();
+  const { ui } = useTheme();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

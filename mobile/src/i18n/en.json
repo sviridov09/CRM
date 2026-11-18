@@ -115,5 +115,11 @@
     "finishBody": "The task will be marked as done.",
     "notificationBody": "Turn it back on to stay on shift, or your foreman will be notified.",
     "channel": "Location is off"
+  },
+  "theme": {
+    "title": "Theme",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
   }
 }

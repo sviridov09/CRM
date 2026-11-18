@@ -4,12 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Linking, Platform, Pressable, ScrollView, Text } from 'react-native';
 import type { LocationProblem } from '../geo/shiftHealth';
 import { finishShift } from '../lib/shift';
-import { ui } from '../lib/ui';
+import { useTheme } from '../lib/theme';
 
 type Props = { problem: Exclude<LocationProblem, null>; sessionId: string; onChanged: () => void };
 
 export function LocationOffScreen({ problem, sessionId, onChanged }: Props) {
   const { t } = useTranslation();
+  const { ui } = useTheme();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 

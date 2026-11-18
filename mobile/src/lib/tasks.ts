@@ -1,6 +1,5 @@
-import type { Site, Task, TaskMaterial, TaskStatus } from '../../../shared/types';
+import type { Site, Task, TaskMaterial } from '../../../shared/types';
 import { supabase } from './supabase';
-import { colors } from './ui';
 
 export type TaskRow = Task & {
   site: Pick<Site, 'name' | 'address' | 'lat' | 'lng' | 'radius_m'> | null;
@@ -10,12 +9,6 @@ export type TaskRow = Task & {
 const TASK_SELECT =
   '*, site:site_id(name, address, lat, lng, radius_m), task_materials(*, material:material_id(name, unit))';
 
-/** Цвета метки статуса; подпись — t(`status.<статус>`). */
-export const TASK_STATUS: Record<TaskStatus, { bg: string; fg: string }> = {
-  assigned: { bg: '#e8ebf0', fg: colors.muted },
-  in_progress: { bg: '#fff6e0', fg: '#8a5a00' },
-  done: { bg: '#e5f6ea', fg: '#1d7a3a' },
-};
 
 /** Сегодня по часам телефона, YYYY-MM-DD. */
 export function todayISO(): string {

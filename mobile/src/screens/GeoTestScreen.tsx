@@ -4,12 +4,15 @@ import * as Notifications from 'expo-notifications';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { isShiftRunning, readShiftState, startShift, stopShift, type ShiftState } from '../geo/shiftTracking';
+import { useTheme, useThemedStyles, type Palette } from '../lib/theme';
 
 type Perms = { foreground: boolean; background: boolean; notifications: boolean };
 
 const time = (ms: number) => new Date(ms).toLocaleTimeString();
 
 export function GeoTestScreen({ onBack }: { onBack: () => void }) {
+  const { ui } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const [perms, setPerms] = useState<Perms | null>(null);
   const [running, setRunning] = useState(false);
   const [state, setState] = useState<ShiftState | null>(null);
@@ -81,11 +84,11 @@ export function GeoTestScreen({ onBack }: { onBack: () => void }) {
         <Switch value={testMode} onValueChange={setTestMode} disabled={running} />
       </View>
       <Pressable
-        style={[styles.button, running ? styles.stop : styles.start, !ready && styles.disabled]}
+        style={[ui.button, running && ui.buttonDanger, !ready && ui.disabled]}
         onPress={() => void toggleShift()}
         disabled={!ready}
       >
-        <Text style={styles.buttonText}>{running ? 'Stop shift' : 'Start shift'}</Text>
+        <Text style={ui.buttonText}>{running ? 'Stop shift' : 'Start shift'}</Text>
       </Pressable>
 
       <Text style={styles.h2}>3. Log</Text>
@@ -113,6 +116,7 @@ export function GeoTestScreen({ onBack }: { onBack: () => void }) {
 }
 
 function PermRow(props: { label: string; ok?: boolean; onPress: () => void; disabled?: boolean }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.row}>
       <Text style={styles.text}>
@@ -127,20 +131,17 @@ function PermRow(props: { label: string; ok?: boolean; onPress: () => void; disa
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#fff' },
-  content: { padding: 20, paddingTop: 56, gap: 10 },
-  h1: { fontSize: 22, fontWeight: '700' },
-  h2: { fontSize: 17, fontWeight: '600', marginTop: 14 },
-  text: { fontSize: 15, color: '#1c2129', flexShrink: 1 },
-  bold: { fontWeight: '600' },
-  mono: { fontFamily: 'monospace', fontSize: 13, color: '#1c2129' },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  button: { padding: 16, borderRadius: 10, alignItems: 'center' },
-  start: { backgroundColor: '#1f6feb' },
-  stop: { backgroundColor: '#b8322d' },
-  disabled: { opacity: 0.4 },
-  buttonText: { color: '#fff', fontSize: 17, fontWeight: '600' },
-  small: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 8, backgroundColor: '#e8effd' },
-  smallText: { color: '#1f6feb', fontWeight: '600' },
-});
+const createStyles = (c: Palette) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: c.bg },
+    content: { padding: 20, paddingTop: 56, gap: 10 },
+    h1: { fontSize: 22, fontWeight: '700', color: c.text },
+    h2: { fontSize: 17, fontWeight: '600', marginTop: 14, color: c.text },
+    text: { fontSize: 15, color: c.text, flexShrink: 1 },
+    bold: { fontWeight: '600' },
+    mono: { fontFamily: 'monospace', fontSize: 13, color: c.text },
+    row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+    disabled: { opacity: 0.4 },
+    small: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 8, backgroundColor: c.selectedBg },
+    smallText: { color: c.accent, fontWeight: '600' },
+  });
