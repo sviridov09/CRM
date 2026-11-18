@@ -641,6 +641,75 @@ legend {
   border-radius: var(--radius);
 }
 
+/* ── Задачи на узком экране: строки превращаются в карточки ── */
+
+@media (max-width: 860px) {
+  .tasks-table {
+    border: none;
+    background: none;
+  }
+
+  .tasks-table table,
+  .tasks-table tbody,
+  .tasks-table tr,
+  .tasks-table td {
+    display: block;
+  }
+
+  .tasks-table thead {
+    display: none;
+  }
+
+  .tasks-table tr {
+    margin-bottom: 12px;
+    padding: 6px 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .tasks-table td,
+  .tasks-table tbody tr:last-child td {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 8px;
+    padding: 6px 14px;
+    border-bottom: none;
+  }
+
+  .tasks-table td[data-label]::before {
+    content: attr(data-label);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+    padding-top: 2px;
+  }
+
+  /* Кнопки — внизу карточки, без прокрутки вбок */
+  .tasks-table td.actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 6px;
+    white-space: normal;
+  }
+
+  .tasks-table td.actions:empty {
+    display: none;
+  }
+
+  .tasks-table td.actions .btn + .btn {
+    margin-left: 0;
+  }
+
+  .tasks-table .nowrap,
+  .tasks-table ul.plain li {
+    white-space: normal;
+  }
+}
+
 /* ── Телефон ────────────────────────────────────────────── */
 
 @media (max-width: 640px) {

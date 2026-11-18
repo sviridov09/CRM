@@ -120,7 +120,7 @@ export function TasksPage() {
       ) : tasks.length === 0 ? (
         <p className="empty">No tasks for this day.</p>
       ) : (
-        <div className="table-wrap">
+        <div className="table-wrap tasks-table">
           <table>
             <thead>
               <tr>
@@ -135,17 +135,17 @@ export function TasksPage() {
             <tbody>
               {tasks.map((t) => (
                 <tr key={t.id}>
-                  <td className="strong nowrap">{t.worker?.full_name}</td>
-                  <td>
+                  <td className="strong nowrap" data-label="Worker">{t.worker?.full_name}</td>
+                  <td data-label="Site">
                     {t.site?.name}
                     <div className="muted small">{t.site?.address}</div>
                   </td>
-                  <td>
+                  <td data-label="Task">
                     {t.title}
                     {t.work_date !== date && <div className="started-earlier">Started {shortDate(t.work_date)}</div>}
                     {t.description && <div className="muted small pre">{t.description}</div>}
                   </td>
-                  <td>
+                  <td data-label="Materials">
                     {t.task_materials.length === 0 ? (
                       <span className="muted">—</span>
                     ) : (
@@ -159,7 +159,7 @@ export function TasksPage() {
                       </ul>
                     )}
                   </td>
-                  <td>
+                  <td data-label="Status">
                     <span className={`badge status-${t.status}`}>{statusLabel[t.status]}</span>
                     {t.work_sessions.some((ws) => ws.closed_by) && (
                       <div className="muted small nowrap">closed by foreman</div>

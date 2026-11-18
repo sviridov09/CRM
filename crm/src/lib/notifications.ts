@@ -48,7 +48,16 @@ export async function markAllRead() {
   if (error) throw error
 }
 
-const clock = (iso: string) => new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+/** «5:08 PM» за сегодня, «Nov 4, 11:53 PM» — за другой день. */
+function clock(iso: string): string {
+  const d = new Date(iso)
+  const today = d.toDateString() === new Date().toDateString()
+  return d.toLocaleString('en-US', {
+    ...(today ? {} : { month: 'short', day: 'numeric' }),
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
 
 export function describeNotification(n: NotificationRow, materials: NotificationList['materials']): string {
   const worker = n.worker?.full_name ?? 'A worker'
