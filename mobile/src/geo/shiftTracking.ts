@@ -12,6 +12,7 @@ import * as BackgroundTask from 'expo-background-task';
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import { nextPingDelayMs } from '../../../shared/types';
+import { ShiftGuard } from '../../modules/shift-guard';
 import { supabase } from '../lib/supabase';
 import { clearLeftSite, expireLeftSite, promptLeftSite } from './leftSite';
 import { clearShiftHealth, reportShiftHealth } from './shiftHealth';
@@ -110,7 +111,18 @@ TaskManager.defineTask<{ locations: Location.LocationObject[] }>(SHIFT_TASK, asy
     await flushPings(state);
     await writeShiftState(state);
   }
-  if (state.sessionId) await reportShiftHealth(state.sessionId);
+  if (state.sessionId) {
+    ShiftGuard?.startWatching(); // после перезапуска процесса приёмник нужно включить заново
+    await reportShiftHealth(state.sessionId);
+  }
+});
+
+// Геолокацию переключили — сразу сообщаем серверу, не дожидаясь пробуждения службы
+ShiftGuard?.addListener('onLocationToggle', () => {
+  void (async () => {
+    const state = await readShiftState();
+    if (state?.sessionId) await reportShiftHealth(state.sessionId).catch(() => undefined);
+  })();
 });
 
 // Раз в ~15 минут (чаще Android не даёт): сердцебиение и проверка, не выключена ли геолокация
@@ -142,6 +154,10 @@ export async function startShift({ testMode, sessionId = null }: { testMode: boo
     // Возобновили ту же смену — неотправленные проверки сохраняем
     pendingPings: sessionId && prev?.sessionId === sessionId ? prev.pendingPings : [],
   });
+  // Канал «You're on shift» без счётчика на иконке. Если служба уже показывает уведомление,
+  // Android не даст удалить канал — нативный код это пропустит, сработает при следующем старте.
+  // (isShiftRunning тут не подходит: после переустановки он true и для мёртвой службы.)
+  ShiftGuard?.prepareServiceChannel(SHIFT_TASK);
   await Location.startLocationUpdatesAsync(SHIFT_TASK, {
     // High = GPS: радиус объекта ~150 м, сетевой точности (~100 м) мало
     accuracy: Location.Accuracy.High,
@@ -155,6 +171,7 @@ export async function startShift({ testMode, sessionId = null }: { testMode: boo
     },
   });
   if (sessionId) {
+    ShiftGuard?.startWatching();
     await BackgroundTask.registerTaskAsync(SHIFT_WATCH_TASK, { minimumInterval: 15 });
     await reportShiftHealth(sessionId);
   }
@@ -175,6 +192,7 @@ export async function stopShift() {
   if (await TaskManager.isTaskRegisteredAsync(SHIFT_WATCH_TASK)) {
     await BackgroundTask.unregisterTaskAsync(SHIFT_WATCH_TASK);
   }
+  ShiftGuard?.stopWatching();
   await clearLeftSite();
   await clearShiftHealth();
 }

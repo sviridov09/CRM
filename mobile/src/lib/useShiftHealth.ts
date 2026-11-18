@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
+import { ShiftGuard } from '../../modules/shift-guard';
 import { locationProblem, reportShiftHealth, type LocationProblem } from '../geo/shiftHealth';
 import { isShiftRunning, readShiftState } from '../geo/shiftTracking';
 
@@ -12,6 +13,7 @@ export function useShiftHealth() {
   const refresh = useCallback(async () => {
     const state = await readShiftState();
     const id = state?.sessionId && (await isShiftRunning()) ? state.sessionId : null;
+    if (id) ShiftGuard?.startWatching(); // приложение перезапустилось посреди смены
     const current = id ? await locationProblem() : null;
     setSessionId(id);
     setProblem(current);
