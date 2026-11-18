@@ -8,7 +8,14 @@ export type TaskStatus = "assigned" | "in_progress" | "done";
 export type PingResponse = "left" | "no_response";
 export type MediaKind = "before" | "after";
 export type MediaType = "photo" | "video";
-export type NotificationType = "left_site" | "absence" | "overuse" | "material_request";
+export type NotificationType =
+  | "left_site"
+  | "absence"
+  | "overuse"
+  | "material_request"
+  | "location_off" // 0005
+  | "location_on"
+  | "no_signal";
 
 export interface Profile {
   id: string;
@@ -79,6 +86,10 @@ export interface WorkSession {
   device_finished_at: string | null;
   end_lat: number | null;
   end_lng: number | null;
+  last_seen_at: string | null; // 0005: сердцебиение приложения
+  location_off_since: string | null;
+  no_signal_at: string | null;
+  closed_by: string | null; // смену закрыл бригадир
 }
 
 export interface LocationPing {

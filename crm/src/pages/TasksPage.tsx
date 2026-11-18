@@ -11,13 +11,14 @@ type TaskRow = Task & {
   site: { name: string; address: string } | null
   worker: { full_name: string } | null
   task_materials: (TaskMaterial & { material: { name: string; unit: string } | null })[]
+  work_sessions: { closed_by: string | null; finished_at: string | null }[]
 }
 
 type Refs = { sites: Site[]; workers: Profile[]; materials: Material[] }
 
 // У tasks две ссылки на profiles (worker_id, created_by) — поэтому связь указываем по колонке
 const TASK_SELECT =
-  '*, site:site_id(name, address), worker:worker_id(full_name), task_materials(*, material:material_id(name, unit))'
+  '*, site:site_id(name, address), worker:worker_id(full_name), task_materials(*, material:material_id(name, unit)), work_sessions(closed_by, finished_at)'
 
 // Справочники для формы задачи
 const loadRefs = async (): Promise<Refs> => {
@@ -55,6 +56,14 @@ export function TasksPage() {
   }, [date])
   const { data: tasks, error, reload } = useAsync(load)
   const refs = useAsync(loadRefs)
+
+  async function closeShift(task: TaskRow) {
+    if (!confirm(`Close the shift for "${task.title}"? Use this if the worker forgot or their phone died.`)) return
+    setActionError(null)
+    const { error } = await supabase.rpc('close_shift', { p_task_id: task.id })
+    if (error) setActionError(error.message)
+    else reload()
+  }
 
   async function remove(task: TaskRow) {
     if (!confirm(`Delete task "${task.title}"?`)) return
@@ -152,8 +161,16 @@ export function TasksPage() {
                   </td>
                   <td>
                     <span className={`badge status-${t.status}`}>{statusLabel[t.status]}</span>
+                    {t.work_sessions.some((ws) => ws.closed_by) && (
+                      <div className="muted small nowrap">closed by foreman</div>
+                    )}
                   </td>
                   <td className="actions">
+                    {t.status === 'in_progress' && (
+                      <button type="button" className="btn small" onClick={() => void closeShift(t)}>
+                        Close shift
+                      </button>
+                    )}
                     {t.status === 'assigned' && (
                       <>
                         <button type="button" className="btn small" onClick={() => setEditing(t)} disabled={!refs.data}>

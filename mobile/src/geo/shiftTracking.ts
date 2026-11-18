@@ -8,13 +8,17 @@
 // только в локальный журнал.
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as BackgroundTask from 'expo-background-task';
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import { nextPingDelayMs } from '../../../shared/types';
 import { supabase } from '../lib/supabase';
 import { clearLeftSite, expireLeftSite, promptLeftSite } from './leftSite';
+import { clearShiftHealth, reportShiftHealth } from './shiftHealth';
 
 export const SHIFT_TASK = 'shift-location';
+// Резервное пробуждение: точки не приходят, если геолокацию выключили
+const SHIFT_WATCH_TASK = 'shift-watch';
 const STATE_KEY = 'shift-proto-state';
 
 export type Check = {
@@ -106,12 +110,27 @@ TaskManager.defineTask<{ locations: Location.LocationObject[] }>(SHIFT_TASK, asy
     await flushPings(state);
     await writeShiftState(state);
   }
+  if (state.sessionId) await reportShiftHealth(state.sessionId);
+});
+
+// Раз в ~15 минут (чаще Android не даёт): сердцебиение и проверка, не выключена ли геолокация
+TaskManager.defineTask(SHIFT_WATCH_TASK, async () => {
+  try {
+    const state = await readShiftState();
+    if (state?.sessionId && (await isShiftRunning())) await reportShiftHealth(state.sessionId);
+    return BackgroundTask.BackgroundTaskResult.Success;
+  } catch {
+    return BackgroundTask.BackgroundTaskResult.Failed;
+  }
 });
 
 export async function startShift({ testMode, sessionId = null }: { testMode: boolean; sessionId?: string | null }) {
   const now = Date.now();
   const prev = await readShiftState();
-  if (prev?.sessionId !== sessionId) await clearLeftSite();
+  if (prev?.sessionId !== sessionId) {
+    await clearLeftSite();
+    await clearShiftHealth();
+  }
   await writeShiftState({
     testMode,
     sessionId,
@@ -135,6 +154,10 @@ export async function startShift({ testMode, sessionId = null }: { testMode: boo
       killServiceOnDestroy: false,
     },
   });
+  if (sessionId) {
+    await BackgroundTask.registerTaskAsync(SHIFT_WATCH_TASK, { minimumInterval: 15 });
+    await reportShiftHealth(sessionId);
+  }
 }
 
 /** Внеочередная проверка: следующая будет через delayMs, дальше снова по случайному расписанию. */
@@ -149,7 +172,11 @@ export async function stopShift() {
   if (await Location.hasStartedLocationUpdatesAsync(SHIFT_TASK)) {
     await Location.stopLocationUpdatesAsync(SHIFT_TASK);
   }
+  if (await TaskManager.isTaskRegisteredAsync(SHIFT_WATCH_TASK)) {
+    await BackgroundTask.unregisterTaskAsync(SHIFT_WATCH_TASK);
+  }
   await clearLeftSite();
+  await clearShiftHealth();
 }
 
 export async function isShiftRunning() {

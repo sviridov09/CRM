@@ -6,9 +6,11 @@ import type { TaskRow } from './src/lib/tasks';
 import { ui } from './src/lib/ui';
 import { useAuth } from './src/lib/useAuth';
 import { useLeftSite } from './src/lib/useLeftSite';
+import { useShiftHealth } from './src/lib/useShiftHealth';
 import { ConsentScreen, isSetupComplete } from './src/screens/ConsentScreen';
 import { GeoTestScreen } from './src/screens/GeoTestScreen';
 import { LeftSiteScreen } from './src/screens/LeftSiteScreen';
+import { LocationOffScreen } from './src/screens/LocationOffScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { TaskScreen } from './src/screens/TaskScreen';
 import { TasksScreen } from './src/screens/TasksScreen';
@@ -25,9 +27,10 @@ export default function App() {
 function Root() {
   const { state, retry } = useAuth();
   const { awaiting, answer } = useLeftSite();
+  const health = useShiftHealth();
   const [setupDone, setSetupDone] = useState<boolean | null>(null);
   const [geoTest, setGeoTest] = useState(false);
-  const [openTask, setOpenTask] = useState<TaskRow | null>(null);
+  const [openTask, setOpenTask] = useState<{ task: TaskRow; finish: boolean } | null>(null);
   const finishSetup = useCallback(() => setSetupDone(true), []);
 
   const ready = state.status === 'ready';
@@ -52,9 +55,29 @@ function Root() {
   if (setupDone === null) return <Loading />;
   if (!setupDone) return <ConsentScreen onDone={finishSetup} />;
   if (awaiting) return <LeftSiteScreen awaiting={awaiting} onAnswer={answer} />;
+  if (health.problem && health.sessionId) {
+    return (
+      <LocationOffScreen
+        problem={health.problem}
+        sessionId={health.sessionId}
+        onChanged={() => {
+          setOpenTask(null);
+          void health.refresh();
+        }}
+      />
+    );
+  }
   if (geoTest) return <GeoTestScreen onBack={() => setGeoTest(false)} />;
-  if (openTask) return <TaskScreen task={openTask} onBack={() => setOpenTask(null)} />;
-  return <TasksScreen profile={state.profile} onOpenTask={setOpenTask} onOpenGeoTest={() => setGeoTest(true)} />;
+  if (openTask) {
+    return <TaskScreen task={openTask.task} finishOnOpen={openTask.finish} onBack={() => setOpenTask(null)} />;
+  }
+  return (
+    <TasksScreen
+      profile={state.profile}
+      onOpenTask={(task, options) => setOpenTask({ task, finish: options?.finish ?? false })}
+      onOpenGeoTest={() => setGeoTest(true)}
+    />
+  );
 }
 
 function Loading() {

@@ -5,7 +5,11 @@ import { supabase } from '../lib/supabase';
 import { loadTodayTasks, shortDate, TASK_STATUS, todayISO, type TaskRow } from '../lib/tasks';
 import { colors, ui } from '../lib/ui';
 
-type Props = { profile: Profile; onOpenTask: (task: TaskRow) => void; onOpenGeoTest: () => void };
+type Props = {
+  profile: Profile;
+  onOpenTask: (task: TaskRow, options?: { finish: boolean }) => void;
+  onOpenGeoTest: () => void;
+};
 
 export function TasksScreen({ profile, onOpenTask, onOpenGeoTest }: Props) {
   const [tasks, setTasks] = useState<TaskRow[] | null>(null);
@@ -50,7 +54,13 @@ export function TasksScreen({ profile, onOpenTask, onOpenGeoTest }: Props) {
         keyExtractor={(t) => t.id}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} />}
-        renderItem={({ item }) => <TaskCard task={item} onPress={() => onOpenTask(item)} />}
+        renderItem={({ item }) => (
+          <TaskCard
+            task={item}
+            onPress={() => onOpenTask(item)}
+            onFinish={() => onOpenTask(item, { finish: true })}
+          />
+        )}
         ListEmptyComponent={
           <Text style={[ui.muted, styles.empty]}>{tasks ? 'No tasks for today.' : 'Loading…'}</Text>
         }
@@ -66,7 +76,7 @@ export function TasksScreen({ profile, onOpenTask, onOpenGeoTest }: Props) {
   );
 }
 
-function TaskCard({ task, onPress }: { task: TaskRow; onPress: () => void }) {
+function TaskCard({ task, onPress, onFinish }: { task: TaskRow; onPress: () => void; onFinish: () => void }) {
   const status = TASK_STATUS[task.status];
   return (
     <Pressable style={styles.card} onPress={onPress}>
@@ -91,6 +101,11 @@ function TaskCard({ task, onPress }: { task: TaskRow; onPress: () => void }) {
           ))}
         </View>
       )}
+      {task.status === 'in_progress' && (
+        <Pressable style={[ui.button, styles.finish]} onPress={onFinish}>
+          <Text style={ui.buttonText}>Finish shift</Text>
+        </Pressable>
+      )}
     </Pressable>
   );
 }
@@ -112,4 +127,5 @@ const styles = StyleSheet.create({
   title: { flex: 1, fontSize: 17, fontWeight: '600', color: colors.text },
   badge: { fontSize: 13, fontWeight: '600', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999, overflow: 'hidden' },
   materials: { gap: 2, marginTop: 4 },
+  finish: { backgroundColor: '#1d7a3a', marginTop: 4 },
 });

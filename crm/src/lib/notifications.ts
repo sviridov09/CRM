@@ -69,6 +69,12 @@ export function describeNotification(n: NotificationRow, materials: Notification
     }
     case 'material_request':
       return `${worker} requested a new material: ${n.payload.name} (${n.payload.unit})`
+    case 'location_off':
+      return `${worker} turned off location at ${at} · ${site}`
+    case 'location_on':
+      return `${worker} turned location back on (${at})`
+    case 'no_signal':
+      return `No signal from ${worker} since ${at} · ${site}`
   }
 }
 
